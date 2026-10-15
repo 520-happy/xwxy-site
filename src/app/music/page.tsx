@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { SiteShell } from "@/components/site-shell";
 import { TunerPanel } from "@/components/music/tuner";
+import { GuitarPanel } from "@/components/music/guitar";
 import { PianoPanel } from "@/components/music/piano";
 import { TutorialsPanel } from "@/components/music/tutorials";
 import { SongGridPanel } from "@/components/music/song-grid";
@@ -12,10 +13,11 @@ import { ImportPanel } from "@/components/music/import-panel";
 import { BUILTIN_LESSONS, type Lesson } from "@/data/lessons";
 import { cn } from "@/lib/utils";
 
-type Tab = "tuner" | "piano" | "learn" | "songs" | "follow" | "import";
+type Tab = "tuner" | "guitar" | "piano" | "learn" | "songs" | "follow" | "import";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "tuner", label: "🎸 吉他调音" },
+  { id: "guitar", label: "🎶 吉他弹奏" },
   { id: "piano", label: "🎹 钢琴" },
   { id: "learn", label: "📖 新手教程" },
   { id: "songs", label: "🔥 网红谱" },
@@ -69,6 +71,7 @@ export default function MusicPage() {
           transition={{ duration: 0.25 }}
         >
           {tab === "tuner" && <TunerPanel />}
+          {tab === "guitar" && <GuitarPanel />}
           {tab === "piano" && <PianoPanel />}
           {tab === "learn" && <TutorialsPanel />}
           {tab === "songs" && <SongGridPanel onFollow={followSong} />}
