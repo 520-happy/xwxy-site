@@ -34,7 +34,7 @@ export const RANKINGS: RankSection[] = [
     name: "爱奇艺 · 电视剧榜",
     items: [
       { title: "魅影神捕", actors: "罗云熙、方逸伦", desc: "", heat: "", img: "/posters/p11.jpg" },
-      { title: "喜剧之王", actors: "杨超越、蒋龙", desc: "", heat: "", img: "/posters/p12.png" },
+      { title: "喜剧之王", actors: "杨超越、蒋龙", desc: "", heat: "", img: "/posters/p12.jpg" },
       { title: "罚罪2", actors: "黄景瑜、王传君", desc: "警匪对决全新故事", heat: "", img: "/posters/p13.jpg" },
       { title: "低智商犯罪", actors: "田曦薇、王骁", desc: "热血女刑警冷幽默探案", heat: "", img: "/posters/p14.jpg" },
       { title: "逍遥", actors: "谭松韵、侯明昊", desc: "", heat: "", img: "/posters/p15.jpg" },
@@ -66,7 +66,7 @@ export const RANKINGS: RankSection[] = [
     name: "动漫榜",
     items: [
       { title: "凡人修仙传", actors: "金锋", desc: "韩立奔赴慕兰之战", heat: "", img: "/posters/p30.jpg" },
-      { title: "牧神记", actors: "", desc: "放牛少年放牧诸神", heat: "", img: "/posters/p31.png" },
+      { title: "牧神记", actors: "", desc: "放牛少年放牧诸神", heat: "", img: "/posters/p31.jpg" },
       { title: "时光代理人 第三季", actors: "苏尚卿、杨天翔", desc: "时光照相馆命运交叉", heat: "", img: "/posters/p32.jpg" },
       { title: "有兽焉", actors: "", desc: "神兽下凡福瑞相伴", heat: "", img: "/posters/p33.jpg" },
       { title: "将夜", actors: "", desc: "永夜将至拔刀向天", heat: "", img: "/posters/p34.jpg" },
