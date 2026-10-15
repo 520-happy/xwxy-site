@@ -108,7 +108,7 @@ export function createMiniPiano(
 
   // 高亮样式
   const style = document.createElement("style");
-  style.textContent = `.mini-piano .wkey.lit{background:#ffe9d9!important;box-shadow:inset 0 0 0 2px #4f6df5!important;}.mini-piano .bkey.lit{background:#4f6df5!important;box-shadow:0 0 12px #4f6df5!important;}`;
+  style.textContent = `.mini-piano .wkey.lit{background:#ffe9d9!important;box-shadow:inset 0 0 0 2px #18181b!important;}.mini-piano .bkey.lit{background:#18181b!important;box-shadow:0 0 12px #18181b!important;}`;
   document.head.appendChild(style);
 
   function flash(m: number, ms = 350) {

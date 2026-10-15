@@ -107,7 +107,7 @@ export default function PhonePage() {
           transition={{ duration: 0.5 }}
           className="glass mb-6 flex flex-wrap items-center gap-6 rounded-3xl p-8"
         >
-          <div className="flex h-[84px] w-[84px] flex-none items-center justify-center rounded-[22px] bg-gradient-to-br from-[#5b7cfa] to-[#7a5cf8] text-[42px] shadow-[0_8px_20px_rgba(79,109,245,0.35)]">
+          <div className="flex h-[84px] w-[84px] flex-none items-center justify-center rounded-[22px] bg-zinc-900 text-[42px] shadow-[0_8px_20px_rgb(0_0_0/0.18)]">
             📱
           </div>
           <div className="min-w-[240px] flex-1">

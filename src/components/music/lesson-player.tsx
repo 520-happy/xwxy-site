@@ -132,7 +132,7 @@ function LessonRunner({ lesson, onExit }: { lesson: Lesson; onExit: () => void }
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-black/10">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-[#5b7cfa] to-[#7a5cf8] transition-all"
+          className="h-full rounded-full bg-zinc-900 transition-all"
           style={{ width: `${(idx / lesson.steps.length) * 100}%` }}
         />
       </div>

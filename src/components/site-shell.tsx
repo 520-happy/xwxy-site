@@ -61,12 +61,12 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-[100] border-b border-line/70 bg-white/85 backdrop-blur-[16px] backdrop-saturate-[1.3]">
+      <header className="sticky top-0 z-[100] border-b border-line bg-white/90 backdrop-blur-[12px]">
         <div className="mx-auto flex h-16 max-w-[1180px] items-center gap-3 px-4 sm:px-6">
           <Link href="/" className="flex flex-none items-center gap-2.5" aria-label="XWXY 首页">
             <span
               aria-hidden="true"
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#6d64ff] to-[#8b5cf6] text-[17px] font-extrabold text-white shadow-[0_4px_12px_rgb(99_91_255/0.35)]"
+              className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-900 text-[17px] font-extrabold text-white"
             >
               X
             </span>
@@ -113,7 +113,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
         {/* 移动端下拉菜单 */}
         {open && (
-          <nav aria-label="主导航" className="border-t border-line/70 bg-white/95 px-4 py-3 backdrop-blur-[16px] md:hidden">
+          <nav aria-label="主导航" className="border-t border-line bg-white px-4 py-3 md:hidden">
             <ul className="flex flex-col gap-1">
               {NAV.map((it) => {
                 const active = isActive(pathname, it);
@@ -125,7 +125,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
                   <>
                     <span className={cn(
                       "flex h-9 w-9 flex-none items-center justify-center rounded-[10px]",
-                      active ? "bg-gradient-to-br from-[#6d64ff] to-[#8b5cf6] text-white" : "bg-slate-900/[0.05] text-fog"
+                      active ? "bg-zinc-900 text-white" : "bg-zinc-100 text-fog"
                     )}>
                       <it.Icon size={17} strokeWidth={2.1} aria-hidden="true" />
                     </span>

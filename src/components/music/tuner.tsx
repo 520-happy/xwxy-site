@@ -147,7 +147,7 @@ export function TunerPanel() {
                 className={cn(
                   "h-[42px] w-[42px] rounded-xl border border-white/85 bg-white/60 text-[15px] font-bold backdrop-blur-[10px] transition-all",
                   capo === f &&
-                    "border-transparent bg-gradient-to-br from-[#5b7cfa] to-[#7a5cf8] text-white shadow-[0_4px_12px_rgba(79,109,245,0.35)]"
+                    "border-transparent bg-zinc-900 text-white shadow-[0_4px_12px_rgb(0_0_0/0.18)]"
                 )}
               >
                 {f === 0 ? "0" : `${f}品`}

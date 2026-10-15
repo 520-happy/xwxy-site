@@ -1,4 +1,3 @@
-import type { ComponentType } from "react";
 import {
   Smartphone,
   Sprout,
@@ -7,13 +6,6 @@ import {
   FolderSearch,
   type LucideIcon,
 } from "lucide-react";
-import {
-  PhoneIll,
-  GameIll,
-  MusicIll,
-  RankIll,
-  SearchIll,
-} from "@/components/illustrations";
 
 /**
  * 工具配置中心 — 首页卡片、分类、搜索全部由此生成。
@@ -27,10 +19,7 @@ export interface Tool {
   href: string;
   external?: boolean;
   Icon: LucideIcon;
-  Ill: ComponentType<{ className?: string }>;
-  /** 卡片顶部视觉区渐变 */
-  visual: string;
-  /** 标题旁小图标底色 */
+  /** 图标底色 */
   iconTile: string;
   tags: string[];
 }
@@ -51,8 +40,6 @@ export const TOOLS: Tool[] = [
     category: "生活实用",
     href: "/phone",
     Icon: Smartphone,
-    Ill: PhoneIll,
-    visual: "linear-gradient(135deg,#e7ebff 0%,#f4f6ff 100%)",
     iconTile: "bg-[#e7ebff] text-[#4a3fd6]",
     tags: ["OPPO", "价格", "比价", "购物", "手机"],
   },
@@ -63,8 +50,6 @@ export const TOOLS: Tool[] = [
     category: "休闲娱乐",
     href: "/game",
     Icon: Sprout,
-    Ill: GameIll,
-    visual: "linear-gradient(135deg,#dcf3e4 0%,#f0faf3 100%)",
     iconTile: "bg-[#dcf3e4] text-[#2e7d4f]",
     tags: ["游戏", "塔防", "植物", "僵尸"],
   },
@@ -75,8 +60,6 @@ export const TOOLS: Tool[] = [
     category: "学习成长",
     href: "/music",
     Icon: Guitar,
-    Ill: MusicIll,
-    visual: "linear-gradient(135deg,#ebe3ff 0%,#f6f1ff 100%)",
     iconTile: "bg-[#ebe3ff] text-[#6f42d8]",
     tags: ["吉他", "钢琴", "调音", "和弦", "教程", "乐谱"],
   },
@@ -87,8 +70,6 @@ export const TOOLS: Tool[] = [
     category: "休闲娱乐",
     href: "/rank",
     Icon: Clapperboard,
-    Ill: RankIll,
-    visual: "linear-gradient(135deg,#fdeecd 0%,#fdf6e8 100%)",
     iconTile: "bg-[#fdeecd] text-[#b07a1e]",
     tags: ["电视剧", "动漫", "热播", "榜单", "追剧"],
   },
@@ -100,8 +81,6 @@ export const TOOLS: Tool[] = [
     href: "https://pansou.de",
     external: true,
     Icon: FolderSearch,
-    Ill: SearchIll,
-    visual: "linear-gradient(135deg,#d9effa 0%,#eef8fd 100%)",
     iconTile: "bg-[#d9effa] text-[#2b7fb8]",
     tags: ["网盘", "资源", "搜索", "下载"],
   },

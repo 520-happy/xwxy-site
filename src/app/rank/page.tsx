@@ -18,7 +18,7 @@ function RankCard({ item, index }: { item: RankItem; index: number }) {
         <span
           className={cn(
             "absolute left-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full text-[13px] font-bold text-white",
-            index < 3 ? "bg-gradient-to-br from-[#5b7cfa] to-[#7a5cf8]" : "bg-black/50"
+            index < 3 ? "bg-zinc-900" : "bg-black/50"
           )}
         >
           {index + 1}
