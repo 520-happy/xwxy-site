@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { SiteShell } from "@/components/site-shell";
+import { ColorBlockAnimation } from "@/components/color-block-animation";
 
 const CARDS = [
   {
@@ -59,6 +60,8 @@ export default function HomePage() {
       >
         <h1 className="mb-2 text-[28px] font-semibold">👋 欢迎来到 xwxy</h1>
         <p className="text-sm text-fog">左侧选一个标签，开始游览</p>
+        {/* 彩色小方块队形动画：装饰条，限制在卡片内 */}
+        <ColorBlockAnimation className="mt-5 h-24 w-full sm:h-28" />
       </motion.div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
