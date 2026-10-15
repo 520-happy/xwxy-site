@@ -1,15 +1,25 @@
 "use client";
 
 /**
- * GuitarPanel — 实时可弹的吉他
+ * GuitarPanel — 实时可弹的吉他（高真实感版）
  *
- * 音色：Karplus-Strong 拨弦物理建模（延迟线 + 低通反馈），
- * 听感接近真实木吉他拨弦，非普通振荡器电子音。
- *
- * 交互：6 弦 × 5 品指板，点任意格 = 按弦并拨响该弦；
- * 和弦按钮一键摆好指法并扫弦；也可在弦区滑动扫弦。
+ * 音色：Karplus-Strong 拨弦物理建模（Web Audio 实时合成）。
+ * 手感：
+ * - 指板 touch-action:none，手指在弦上滑动即扫弦，扫得越快越响
+ * - 点按弦格 pointerdown 直接发声（最低延迟），键盘回车同样可弹
+ * - 同一根弦重拨时自动掐断前一个音（8ms 淡出），不浑浊
+ * - 拨弦瞬间弦线做衰减振动动画
+ * - 「制音」按钮模拟手掌闷音
  */
-import { useCallback, useRef, useState, type MutableRefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MutableRefObject,
+  type PointerEvent as RPE,
+} from "react";
 import { Card, CardTitle } from "@/components/ui/card";
 import { ac, noteName } from "@/lib/audio";
 import { cn } from "@/lib/utils";
@@ -42,11 +52,34 @@ function fretFreq(base: number, fret: number) {
 
 /* ---------------- Karplus-Strong 拨弦合成 ---------------- */
 
-interface Master {
-  input: GainNode;
+interface Voice {
+  bus: GainNode;
+  cur: { src: AudioBufferSourceNode; fade: GainNode } | null;
 }
 
-function getMaster(c: AudioContext, ref: MutableRefObject<Master | null>): GainNode {
+/** 生成一段拨弦采样 */
+function ksBuffer(c: AudioContext, freq: number, vel: number): AudioBuffer {
+  const sr = c.sampleRate;
+  const N = Math.max(2, Math.round(sr / freq));
+  const len = Math.floor(sr * 2.2);
+  const buf = c.createBuffer(1, len, sr);
+  const out = buf.getChannelData(0);
+  const line = new Float32Array(N);
+  for (let i = 0; i < N; i++) line[i] = (Math.random() * 2 - 1) * vel;
+  // 高频弦衰减稍快，更像真琴
+  const damp = 0.9965 - Math.min(0.004, (freq / 1600) * 0.004);
+  let idx = 0;
+  for (let i = 0; i < len; i++) {
+    const cur = line[idx];
+    const nxt = line[(idx + 1) % N];
+    line[idx] = damp * 0.5 * (cur + nxt);
+    out[i] = cur;
+    idx = (idx + 1) % N;
+  }
+  return buf;
+}
+
+function getMaster(c: AudioContext, ref: MutableRefObject<GainNode | null>): GainNode {
   if (!ref.current) {
     const comp = c.createDynamicsCompressor();
     comp.threshold.value = -16;
@@ -58,50 +91,63 @@ function getMaster(c: AudioContext, ref: MutableRefObject<Master | null>): GainN
     input.gain.value = 0.9;
     input.connect(comp);
     comp.connect(c.destination);
-    ref.current = { input };
+    ref.current = input;
   }
-  return ref.current.input;
+  return ref.current;
 }
 
-/** 单次拨弦：freq 频率，when 起音时间，vel 力度 0-1 */
-function ksPluck(
+/** 在某根弦上拨响一个音；同弦重拨自动掐断前音 */
+function pluckVoice(
   c: AudioContext,
-  dest: AudioNode,
+  master: GainNode,
+  voices: MutableRefObject<(Voice | null)[]>,
+  si: number,
   freq: number,
   when: number,
-  vel = 1
+  vel: number
 ) {
-  const sr = c.sampleRate;
-  const N = Math.max(2, Math.round(sr / freq));
-  const dur = 2.2;
-  const len = Math.floor(sr * dur);
-  const buf = c.createBuffer(1, len, sr);
-  const out = buf.getChannelData(0);
-  const line = new Float32Array(N);
-  for (let i = 0; i < N; i++) line[i] = (Math.random() * 2 - 1) * vel;
-  // 高频弦衰减稍快，更像真琴
-  const damp = 0.9965 - Math.min(0.004, (freq / 1600) * 0.004);
-  const blend = 0.5;
-  let idx = 0;
-  for (let i = 0; i < len; i++) {
-    const cur = line[idx];
-    const nxt = line[(idx + 1) % N];
-    line[idx] = damp * (blend * cur + (1 - blend) * nxt);
-    out[i] = cur;
-    idx = (idx + 1) % N;
+  let v = voices.current[si];
+  if (!v) {
+    const bus = c.createGain();
+    bus.connect(master);
+    v = { bus, cur: null };
+    voices.current[si] = v;
+  }
+  const bus = v.bus;
+  // 制音后恢复音量
+  bus.gain.cancelScheduledValues(when);
+  bus.gain.setValueAtTime(1, when);
+  // 掐断该弦上一个音（8ms 淡出防爆音）
+  if (v.cur) {
+    const { src, fade } = v.cur;
+    try {
+      fade.gain.cancelScheduledValues(when);
+      fade.gain.setValueAtTime(1, when);
+      fade.gain.linearRampToValueAtTime(0.0001, when + 0.008);
+      src.stop(when + 0.03);
+    } catch {
+      /* 已自然结束 */
+    }
+    v.cur = null;
   }
   const src = c.createBufferSource();
-  src.buffer = buf;
+  src.buffer = ksBuffer(c, freq, vel);
   const lp = c.createBiquadFilter();
   lp.type = "lowpass";
   lp.frequency.value = Math.min(6500, freq * 14);
   lp.Q.value = 0.4;
   const g = c.createGain();
   g.gain.value = 0.55;
+  const fade = c.createGain();
   src.connect(lp);
   lp.connect(g);
-  g.connect(dest);
+  g.connect(fade);
+  fade.connect(bus);
   src.start(when);
+  v.cur = { src, fade };
+  src.onended = () => {
+    if (v!.cur?.src === src) v!.cur = null;
+  };
 }
 
 /** 制音闷响（× 弦的闷音） */
@@ -128,46 +174,61 @@ function chuck(c: AudioContext, dest: AudioNode, when: number) {
 /* ---------------- 组件 ---------------- */
 
 export function GuitarPanel() {
-  const masterRef = useRef<Master | null>(null);
+  const masterRef = useRef<GainNode | null>(null);
+  const voicesRef = useRef<(Voice | null)[]>([null, null, null, null, null, null]);
   const [chord, setChord] = useState("空弦");
-  // 每根弦当前品位（null = ×不弹）
   const [frets, setFrets] = useState<(number | null)[]>([0, 0, 0, 0, 0, 0]);
   const [lastNote, setLastNote] = useState("");
-  const [vibKey, setVibKey] = useState(0);
+  const [vib, setVib] = useState<number[]>([0, 0, 0, 0, 0, 0]);
+  const boardRef = useRef<HTMLDivElement>(null);
   const strumming = useRef(false);
   const strummed = useRef<Set<number>>(new Set());
-  const boardRef = useRef<HTMLDivElement>(null);
+  const lastMove = useRef<{ y: number; t: number } | null>(null);
+  const cellHandled = useRef(false);
+  const suppressClick = useRef(false);
 
-  const pluckString = useCallback(
-    (si: number, fret: number | null, when?: number) => {
-      const c = ac();
-      const dest = getMaster(c, masterRef);
-      const t = when ?? c.currentTime;
-      if (fret === null) {
-        chuck(c, dest, t);
-        return;
-      }
+  // 预热 AudioContext，第一次点按延迟更低
+  useEffect(() => {
+    try {
+      ac();
+    } catch {
+      /* 忽略 */
+    }
+  }, []);
+
+  /** 发声 + 显示音名 + 弦振动 */
+  const uiPluck = useCallback((si: number, fret: number | null, vel: number) => {
+    const c = ac();
+    const master = getMaster(c, masterRef);
+    const t = c.currentTime;
+    if (fret === null) {
+      chuck(c, master, t);
+    } else {
       const f = fretFreq(STRINGS[si].base, fret);
-      ksPluck(c, dest, f, t, 0.85 + Math.random() * 0.15);
-      if (when === undefined) {
-        const nn = noteName(f);
-        setLastNote(`${nn.name}${nn.oct} · ${f.toFixed(1)} Hz`);
-        setVibKey((k) => k + 1);
-      }
-    },
-    []
-  );
-
-  /** 点格：按弦 + 拨响 */
-  const tapCell = (si: number, fret: number) => {
-    setFrets((prev) => {
-      const next = [...prev];
-      next[si] = fret;
-      return next;
+      pluckVoice(c, master, voicesRef, si, f, t, vel);
+      const nn = noteName(f);
+      setLastNote(`${nn.name}${nn.oct} · ${f.toFixed(1)} Hz`);
+    }
+    setVib((v) => {
+      const n = [...v];
+      n[si] += 1;
+      return n;
     });
-    setChord("自选");
-    pluckString(si, fret);
-  };
+  }, []);
+
+  /** 点弦格：按弦 + 拨响 */
+  const tapCell = useCallback(
+    (si: number, fret: number, vel = 0.92) => {
+      setFrets((prev) => {
+        const next = [...prev];
+        next[si] = fret;
+        return next;
+      });
+      setChord("自选");
+      uiPluck(si, fret, vel);
+    },
+    [uiPluck]
+  );
 
   /** 和弦按钮：摆指法 + 扫弦 */
   const playChord = (name: string) => {
@@ -175,37 +236,52 @@ export function GuitarPanel() {
     setChord(name);
     setFrets([...ch.frets]);
     const c = ac();
-    const dest = getMaster(c, masterRef);
+    const master = getMaster(c, masterRef);
     const t0 = c.currentTime + 0.02;
-    // 从低音弦向高音弦扫，力度中间稍强
     ch.frets.forEach((f, si) => {
-      if (f === null) return;
-      const vel = 0.75 + 0.25 * Math.sin((si / 5) * Math.PI);
-      const freq = fretFreq(STRINGS[si].base, f);
-      ksPluck(c, dest, freq, t0 + si * 0.024, vel);
-    });
-    setLastNote(`${name} 和弦`);
-    setVibKey((k) => k + 1);
-  };
-
-  /** 扫弦按钮 */
-  const strumAll = () => {
-    const c = ac();
-    const dest = getMaster(c, masterRef);
-    const t0 = c.currentTime + 0.02;
-    frets.forEach((f, si) => {
       if (f === null) {
-        chuck(c, dest, t0 + si * 0.024);
+        chuck(c, master, t0 + si * 0.024);
         return;
       }
       const vel = 0.75 + 0.25 * Math.sin((si / 5) * Math.PI);
-      ksPluck(c, dest, fretFreq(STRINGS[si].base, f), t0 + si * 0.024, vel);
+      pluckVoice(c, master, voicesRef, si, fretFreq(STRINGS[si].base, f), t0 + si * 0.024, vel);
     });
-    setLastNote(chord === "自选" ? "扫弦" : `${chord} 扫弦`);
-    setVibKey((k) => k + 1);
+    setLastNote(`${name} 和弦`);
+    setVib((v) => v.map((x) => x + 1));
   };
 
-  /** 在弦区滑动扫弦 */
+  /** 扫弦按钮：从低音弦到高音弦 */
+  const strumAll = () => {
+    const c = ac();
+    const master = getMaster(c, masterRef);
+    const t0 = c.currentTime + 0.02;
+    frets.forEach((f, si) => {
+      if (f === null) {
+        chuck(c, master, t0 + si * 0.024);
+        return;
+      }
+      const vel = 0.75 + 0.25 * Math.sin((si / 5) * Math.PI);
+      pluckVoice(c, master, voicesRef, si, fretFreq(STRINGS[si].base, f), t0 + si * 0.024, vel);
+    });
+    setLastNote(chord === "自选" ? "扫弦" : `${chord} 扫弦`);
+    setVib((v) => v.map((x) => x + 1));
+  };
+
+  /** 制音：手掌闷住所有弦，下次拨弦自动松开 */
+  const muteAll = () => {
+    const c = ac();
+    const t = c.currentTime;
+    voicesRef.current.forEach((v) => {
+      if (!v) return;
+      v.bus.gain.cancelScheduledValues(t);
+      v.bus.gain.setValueAtTime(Math.max(v.bus.gain.value, 0.0001), t);
+      v.bus.gain.linearRampToValueAtTime(0.0001, t + 0.035);
+    });
+    setLastNote("制音 ✋");
+  };
+
+  /* ---------- 指板手势：点按即响，滑动扫弦 ---------- */
+
   const stringAtY = (clientY: number): number | null => {
     const el = boardRef.current;
     if (!el) return null;
@@ -215,25 +291,60 @@ export function GuitarPanel() {
     return idx >= 0 && idx < STRINGS.length ? idx : null;
   };
 
-  const onBoardDown = (e: React.PointerEvent) => {
-    // 点在弦格按钮上时由按钮的 onClick 处理，避免一次点按拨弦两次
-    if ((e.target as HTMLElement).closest("button")) return;
+  /** 弦格 pointerdown：立刻发声（最低延迟），并接管后续滑动 */
+  const onCellDown = (si: number, fr: number) => {
+    cellHandled.current = true;
+    suppressClick.current = true;
+    tapCell(si, fr);
+    strumming.current = true;
+    strummed.current = new Set([si]);
+    lastMove.current = null;
+  };
+
+  const onBoardDown = (e: RPE<HTMLDivElement>) => {
+    if (cellHandled.current) {
+      cellHandled.current = false;
+      return; // 弦格已处理，只接管滑动
+    }
     const si = stringAtY(e.clientY);
     if (si === null) return;
     strumming.current = true;
     strummed.current = new Set([si]);
-    pluckString(si, frets[si]);
+    lastMove.current = null;
+    uiPluck(si, frets[si], 0.9);
   };
-  const onBoardMove = (e: React.PointerEvent) => {
+
+  const onBoardMove = (e: RPE<HTMLDivElement>) => {
     if (!strumming.current) return;
     const si = stringAtY(e.clientY);
     if (si === null || strummed.current.has(si)) return;
+    // 力度跟随手速：扫得越快越响
+    const now = performance.now();
+    let vel = 0.8;
+    const lm = lastMove.current;
+    if (lm) {
+      const dt = Math.max(1, now - lm.t);
+      const speed = Math.abs(e.clientY - lm.y) / dt; // px/ms
+      vel = Math.min(1, Math.max(0.55, 0.55 + speed * 0.55));
+    }
+    lastMove.current = { y: e.clientY, t: now };
     strummed.current.add(si);
-    pluckString(si, frets[si]);
+    uiPluck(si, frets[si], vel);
   };
+
   const endStrum = () => {
     strumming.current = false;
     strummed.current.clear();
+    lastMove.current = null;
+  };
+
+  /** 键盘回车/空格点弦格（click 无 pointerdown 时） */
+  const onCellClick = (si: number, fr: number) => {
+    if (suppressClick.current) {
+      suppressClick.current = false;
+      return;
+    }
+    tapCell(si, fr);
   };
 
   return (
@@ -246,7 +357,8 @@ export function GuitarPanel() {
           </span>
         </div>
         <p className="mb-4 text-[13px] leading-6 text-fog">
-          真实拨弦合成音色。点任意弦格按弦拨响；选和弦一键摆好指法并扫弦。
+          真实拨弦合成音色。点弦格即弹；在指板上<span className="font-medium text-ink">上下滑动扫弦</span>
+          ，扫得越快越响。
         </p>
 
         {/* 和弦 */}
@@ -263,7 +375,7 @@ export function GuitarPanel() {
           ))}
         </div>
 
-        {/* 指板 */}
+        {/* 指板：整块 touch-action:none，滑动不抢页面滚动 */}
         <div
           ref={boardRef}
           className="select-none rounded-2xl border border-line bg-white/70 p-2"
@@ -272,19 +384,19 @@ export function GuitarPanel() {
           onPointerUp={endStrum}
           onPointerCancel={endStrum}
           onPointerLeave={endStrum}
-          style={{ touchAction: "pan-y" }}
+          style={{ touchAction: "none" }}
           role="application"
-          aria-label="吉他指板，6弦乘5品"
+          aria-label="吉他指板，6弦乘5品，滑动可扫弦"
         >
           {STRINGS.map((s, si) => {
             const f = frets[si];
             const note = f === null ? "×" : noteName(fretFreq(s.base, f)).name;
+            const h = 2 + (6 - si) * 0.7;
             return (
               <div key={s.n} className="flex items-center gap-1.5 py-[3px]">
                 <div className="w-11 flex-none text-center">
                   <div className="text-[11px] font-medium text-fog">{s.label}</div>
                   <div
-                    key={vibKey}
                     className={cn(
                       "text-[13px] font-bold",
                       f === null ? "text-fog-light" : "text-accent-deep"
@@ -294,28 +406,32 @@ export function GuitarPanel() {
                   </div>
                 </div>
                 <div className="relative flex flex-1 gap-1">
-                  {/* 弦线 */}
+                  {/* 弦线：拨弦时做衰减振动 */}
                   <div
                     aria-hidden="true"
-                    className="pointer-events-none absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 rounded bg-gradient-to-r from-zinc-300 via-zinc-400 to-zinc-300"
-                    style={{ height: 2 + (6 - si) * 0.7 }}
-                  />
+                    className="pointer-events-none absolute left-0 right-0 top-1/2"
+                    style={{ transform: "translateY(-50%)" }}
+                  >
+                    <div
+                      key={vib[si]}
+                      className="string-vib rounded bg-gradient-to-r from-zinc-300 via-zinc-400 to-zinc-300"
+                      style={{ height: h, "--amp": `${3.6 - si * 0.45}px` } as CSSProperties}
+                    />
+                  </div>
                   {FRETS.map((fr) => {
                     const active = f === fr;
                     return (
                       <button
                         key={fr}
                         type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          tapCell(si, fr);
-                        }}
+                        onPointerDown={() => onCellDown(si, fr)}
+                        onClick={() => onCellClick(si, fr)}
                         aria-label={`${s.label}${fr === 0 ? "空弦" : `${fr}品`}`}
                         className={cn(
-                          "relative z-[1] flex h-11 flex-1 items-center justify-center rounded-lg border text-[13px] font-medium transition-all duration-150",
+                          "relative z-[1] flex h-11 flex-1 items-center justify-center rounded-lg border text-[13px] font-medium transition-colors duration-150",
                           active
                             ? "border-accent bg-accent-soft text-accent-deep shadow-[0_0_0_2px_rgb(99_91_255/0.25)]"
-                            : "border-line/70 bg-white/60 text-fog-light hover:border-accent/60 hover:text-accent-deep"
+                            : "border-line/70 bg-white/60 text-fog-light hover:border-accent/60 hover:text-accent-deep active:bg-accent-soft"
                         )}
                       >
                         {fr === 0 ? (
@@ -344,9 +460,18 @@ export function GuitarPanel() {
           })}
         </div>
 
-        <button onClick={strumAll} className="btn-primary mt-4 w-full py-3 text-[15px]">
-          扫弦 ♪
-        </button>
+        <div className="mt-4 flex gap-2">
+          <button onClick={strumAll} className="btn-primary flex-1 py-3 text-[15px]">
+            扫弦 ♪
+          </button>
+          <button
+            onClick={muteAll}
+            className="btn-pill px-5 py-3 text-[15px]"
+            aria-label="制音，闷住所有琴弦"
+          >
+            制音
+          </button>
+        </div>
         <p className="mt-3 text-center text-xs leading-5 text-fog-light">
           标准调弦 E A D G B E · 点格即弹，和弦按钮自动摆指法
         </p>

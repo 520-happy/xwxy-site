@@ -165,9 +165,22 @@ body {
 
 ::selection { background: rgb(24 24 27 / 0.14); }
 
+/* ---------- 拨弦振动（吉他弦线） ---------- */
+@keyframes string-vib {
+  0% { transform: translateY(0); }
+  18% { transform: translateY(calc(var(--amp, 3px) * -1)); }
+  36% { transform: translateY(var(--amp, 3px)); }
+  54% { transform: translateY(calc(var(--amp, 3px) * -0.55)); }
+  72% { transform: translateY(calc(var(--amp, 3px) * 0.55)); }
+  88% { transform: translateY(calc(var(--amp, 3px) * -0.25)); }
+  100% { transform: translateY(0); }
+}
+.string-vib { animation: string-vib 0.55s ease-out; }
+
 /* ---------- 动效降级 ---------- */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  .string-vib { animation: none; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
