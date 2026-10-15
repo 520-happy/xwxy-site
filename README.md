@@ -32,6 +32,18 @@ npm run build    # 静态导出到 out/
 手机比价的价格数据在 `src/data/prices.ts`（顶部有 ★ 标记），只改 `PRICE_DATA` 里的
 `price / guobu / note / updated` 即可，页面自动重排。榜单数据在 `src/data/rankings.ts`。
 
+### 自动流水线（推 GitHub）
+
+1. 抓价程序把最新价格写成 `prices.json`（格式见 `scripts/update-prices.py` 头部注释，
+   只写变化的字段即可，如 `{"京东自营": {"price": 4899, "type": "real"}}`）。
+2. 每小时跑一次：
+   ```bash
+   cd xwxy-site && git pull --rebase
+   python3 scripts/update-prices.py /path/to/prices.json
+   ```
+   脚本会自动更新 `prices.ts`、commit、push，Cloudflare Pages 约1分钟后自动部署上线。
+3. 旧的 zip 包上传流水线已停用，不要再往 Pages 传 zip。
+
 ## 目录结构
 
 ```
