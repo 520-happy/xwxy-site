@@ -1,42 +1,97 @@
 @import "tailwindcss";
 
+/* ============================================================
+ * XWXY 设计系统 v2（2026-10-15）
+ * 主色：白 / 浅灰 / 淡蓝 / 淡紫。柔和渐变、细腻阴影、圆角卡片、
+ * 适量玻璃质感。无荧光色。
+ * ============================================================ */
 @theme {
   --font-sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Roboto, Arial, sans-serif;
 
-  --color-leaf-50: #f3fbf5;
-  --color-leaf-100: #eafaf0;
-  --color-leaf-200: #e2f5e9;
-  --color-leaf-300: #cfeeda;
-  --color-leaf-400: #b2ebc8;
-  --color-leaf-500: #8cdcaa;
-  --color-mint: #eaf7ee;
-  --color-accent: #2f9e63;
-  --color-accent-deep: #1e6b42;
-  --color-accent-soft: #e2f6ec;
-  --color-ink: #1c3325;
-  --color-fog: #5f7a68;
-  --color-fog-light: #8fae9b;
+  /* --- 画布与文字 --- */
+  --color-canvas: #f4f6fb;
+  --color-surface: #ffffff;
+  --color-ink: #1c2030;
+  --color-fog: #5d6579;
+  --color-fog-light: #929aaf;
+  --color-line: #e8ebf3;
 
-  --animate-fade-up: fade-up 0.5s ease both;
+  /* --- 主色：淡蓝 --- */
+  --color-accent: #4f6df5;
+  --color-accent-deep: #3b53c9;
+  --color-accent-soft: #e9edff;
+  --color-accent-faint: #f5f7ff;
+
+  /* --- 辅色：淡紫 --- */
+  --color-violet: #8b5cf6;
+  --color-violet-deep: #6f42d8;
+  --color-violet-soft: #f0e9ff;
+
+  /* --- 语义小色（仅小面积点缀，不做主色） --- */
+  --color-good: #2f9e63;
+  --color-good-soft: #e4f6ec;
+  --color-warn: #b06000;
+  --color-warn-soft: #fdf1dc;
+
+  /* --- 圆角 --- */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-2xl: 28px;
+
+  /* --- 阴影（细腻、分层） --- */
+  --shadow-card: 0 1px 2px rgb(24 28 48 / 0.05), 0 10px 28px rgb(24 28 48 / 0.07);
+  --shadow-lift: 0 2px 6px rgb(24 28 48 / 0.06), 0 18px 44px rgb(79 109 245 / 0.14);
+  --shadow-pop: 0 16px 48px rgb(24 28 48 / 0.16);
+  --shadow-glow: 0 6px 20px rgb(79 109 245 / 0.35);
+
+  /* --- 动效 --- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: cubic-bezier(0.45, 0.05, 0.35, 1);
+
+  --animate-fade-up: fade-up 0.6s var(--ease-out) both;
+  --animate-blob: blob 18s ease-in-out infinite alternate;
+  --animate-float: float 7s ease-in-out infinite;
 
   @keyframes fade-up {
-    from { opacity: 0; transform: translateY(14px); }
+    from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
   }
+  @keyframes blob {
+    from { transform: translate(0, 0) scale(1); }
+    to { transform: translate(48px, -32px) scale(1.15); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* 兼容旧 token（值已换肤，避免旧类名失效） */
+  --color-leaf-50: #f5f7ff;
+  --color-leaf-100: #eef1ff;
+  --color-leaf-200: #e9edff;
+  --color-leaf-300: #dfe6ff;
+  --color-leaf-400: #c3d0ff;
+  --color-leaf-500: #9db2f7;
+  --color-mint: #f5f7ff;
 }
 
 html {
   font-family: var(--font-sans);
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
   color: var(--color-ink);
-  background: linear-gradient(160deg, #f3fbf5 0%, #e2f5e9 45%, #cfeeda 100%);
+  background: var(--color-canvas);
   position: relative;
 }
 
+/* 页面底光：淡蓝 + 淡紫，极柔和 */
 body::before {
   content: "";
   position: fixed;
@@ -44,70 +99,119 @@ body::before {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(640px 420px at 88% -6%, rgba(140, 220, 170, 0.55), transparent 62%),
-    radial-gradient(720px 520px at -12% 112%, rgba(178, 235, 200, 0.5), transparent 60%),
-    radial-gradient(520px 340px at 45% 55%, rgba(255, 255, 255, 0.4), transparent 70%);
+    radial-gradient(720px 460px at 88% -8%, rgb(79 109 245 / 0.10), transparent 62%),
+    radial-gradient(680px 520px at -10% 108%, rgb(139 92 246 / 0.10), transparent 60%),
+    radial-gradient(560px 380px at 48% 52%, rgb(255 255 255 / 0.7), transparent 70%);
 }
 
-/* ---------- glass primitives (kept from the original design) ---------- */
-
+/* ---------- 玻璃拟态 ---------- */
 .glass {
-  background: rgba(255, 255, 255, 0.62);
-  backdrop-filter: blur(18px) saturate(1.4);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow:
-    0 8px 28px rgba(46, 125, 79, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  background: rgb(255 255 255 / 0.68);
+  backdrop-filter: blur(18px) saturate(1.35);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+  border: 1px solid rgb(255 255 255 / 0.75);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgb(255 255 255 / 0.9);
 }
 
-.glass-dark {
-  background: rgba(18, 54, 34, 0.88);
-  backdrop-filter: blur(16px) saturate(1.3);
-  -webkit-backdrop-filter: blur(16px) saturate(1.3);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 10px 30px rgba(18, 54, 34, 0.3);
-  color: #fff;
-}
-
+/* ---------- 按钮 ---------- */
 .btn-pill {
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--color-line);
+  background: rgb(255 255 255 / 0.72);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-radius: 999px;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.15s ease;
-  box-shadow: 0 2px 10px rgba(46, 125, 79, 0.06);
+  color: var(--color-fog);
+  transition: transform 0.18s var(--ease-out), border-color 0.18s ease,
+    color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: 0 2px 10px rgb(24 28 48 / 0.05);
 }
-
 .btn-pill:hover {
-  border-color: rgba(46, 158, 99, 0.5);
+  transform: translateY(-1px);
+  border-color: rgb(79 109 245 / 0.45);
   color: var(--color-accent-deep);
+  box-shadow: 0 4px 14px rgb(79 109 245 / 0.12);
 }
-
+.btn-pill:active { transform: translateY(0) scale(0.97); }
 .btn-pill.active {
-  background: linear-gradient(135deg, #3cb371, #2e8b57);
+  background: linear-gradient(135deg, #5b7cfa, #4f6df5 55%, #7a5cf8);
   color: #fff;
   border-color: transparent;
   font-weight: 600;
-  box-shadow: 0 4px 14px rgba(46, 158, 99, 0.35);
+  box-shadow: var(--shadow-glow);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #3cb371, #2e8b57);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #5b7cfa, #4f6df5 55%, #7a5cf8);
   color: #fff;
   border: 0;
   border-radius: 999px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  box-shadow: 0 6px 18px rgba(46, 158, 99, 0.35);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: var(--shadow-glow), inset 0 1px 0 rgb(255 255 255 / 0.35);
+  transition: transform 0.18s var(--ease-out), box-shadow 0.25s ease, filter 0.2s ease;
 }
-
+/* 悬停高光扫过 */
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.45) 50%, transparent 60%);
+  transform: translateX(-120%);
+  transition: transform 0.6s var(--ease-out);
+  pointer-events: none;
+}
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(46, 158, 99, 0.45);
+  filter: brightness(1.04);
+  box-shadow: 0 10px 28px rgb(79 109 245 / 0.45), inset 0 1px 0 rgb(255 255 255 / 0.4);
+}
+.btn-primary:hover::after { transform: translateX(120%); }
+.btn-primary:active { transform: translateY(0) scale(0.97); }
+
+/* ---------- 卡片微交互 ---------- */
+.card-lift {
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out),
+    border-color 0.3s ease, background-color 0.3s ease;
+  will-change: transform;
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift);
+  border-color: rgb(79 109 245 / 0.28);
+}
+
+/* ---------- 导航 ---------- */
+.nav-item {
+  transition: background-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease;
+}
+.nav-item .nav-icon {
+  transition: transform 0.25s var(--ease-out), background-color 0.22s ease, color 0.22s ease;
+}
+.nav-item:hover .nav-icon { transform: translateX(2px); }
+.nav-item.active .nav-icon { transform: none; }
+
+/* ---------- 可访问性 ---------- */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+#apps { scroll-margin-top: 20px; }
+
+::selection { background: rgb(79 109 245 / 0.22); }
+
+/* ---------- 动效降级 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

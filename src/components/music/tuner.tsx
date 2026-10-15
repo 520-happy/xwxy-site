@@ -147,7 +147,7 @@ export function TunerPanel() {
                 className={cn(
                   "h-[42px] w-[42px] rounded-xl border border-white/85 bg-white/60 text-[15px] font-bold backdrop-blur-[10px] transition-all",
                   capo === f &&
-                    "border-transparent bg-gradient-to-br from-[#3cb371] to-[#2e8b57] text-white shadow-[0_4px_12px_rgba(46,158,99,0.35)]"
+                    "border-transparent bg-gradient-to-br from-[#5b7cfa] to-[#7a5cf8] text-white shadow-[0_4px_12px_rgba(79,109,245,0.35)]"
                 )}
               >
                 {f === 0 ? "0" : `${f}品`}
@@ -168,7 +168,7 @@ export function TunerPanel() {
                 onClick={() => playString(i)}
                 className={cn(
                   "rounded-[14px] border-[1.5px] border-white/85 bg-white/60 px-2 py-3.5 text-center backdrop-blur-[10px] transition-all hover:border-accent",
-                  playing === i && "border-accent bg-accent/[0.14] shadow-[0_4px_16px_rgba(46,158,99,0.25)]"
+                  playing === i && "border-accent bg-accent/[0.14] shadow-[0_4px_16px_rgba(79,109,245,0.25)]"
                 )}
               >
                 <div className="text-[15px] font-bold">{st.s} 弦</div>

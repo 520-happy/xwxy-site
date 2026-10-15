@@ -28,7 +28,7 @@ export function SongGridPanel({ onFollow }: { onFollow: (songTitle: string) => v
                 <h4 className="text-[16px] font-semibold">{s.t}</h4>
                 <div className="mt-0.5 text-xs text-fog">{s.a}</div>
               </div>
-              <div className="text-sm text-[#b06000]">{s.d}</div>
+              <div className="text-sm text-warn">{s.d}</div>
             </div>
             <div className="mb-2.5">
               <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs text-accent-deep">

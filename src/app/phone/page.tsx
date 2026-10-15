@@ -28,7 +28,7 @@ function PlatformCard({ p, isBest, index }: { p: Platform; isBest: boolean; inde
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: Math.min(index * 0.03, 0.3) }}
       className={cn(
-        "glass group relative block overflow-hidden rounded-[20px] p-5 transition-all hover:-translate-y-1 hover:shadow-[0_14px_30px_rgba(46,125,79,0.15)]",
+        "glass group relative block overflow-hidden rounded-[20px] p-5 transition-all hover:-translate-y-1 hover:shadow-[0_14px_30px_rgba(79,109,245,0.15)]",
         isBest && "border-2 !border-accent"
       )}
     >
@@ -51,7 +51,7 @@ function PlatformCard({ p, isBest, index }: { p: Platform; isBest: boolean; inde
         <span
           className={cn(
             "ml-auto flex-none rounded-full px-3 py-1 text-xs",
-            p.type === "real" ? "bg-[#e6f4ea] text-accent" : "bg-[#fef7e0] text-[#b06000]"
+            p.type === "real" ? "bg-good-soft text-good" : "bg-warn-soft text-warn"
           )}
         >
           {p.type === "real" ? "✓ 实查" : "估算"}
@@ -107,7 +107,7 @@ export default function PhonePage() {
           transition={{ duration: 0.5 }}
           className="glass mb-6 flex flex-wrap items-center gap-6 rounded-3xl p-8"
         >
-          <div className="flex h-[84px] w-[84px] flex-none items-center justify-center rounded-[22px] bg-gradient-to-br from-[#3cb371] to-[#2e8b57] text-[42px] shadow-[0_8px_20px_rgba(46,158,99,0.35)]">
+          <div className="flex h-[84px] w-[84px] flex-none items-center justify-center rounded-[22px] bg-gradient-to-br from-[#5b7cfa] to-[#7a5cf8] text-[42px] shadow-[0_8px_20px_rgba(79,109,245,0.35)]">
             📱
           </div>
           <div className="min-w-[240px] flex-1">
@@ -116,7 +116,7 @@ export default function PhonePage() {
               {["16GB + 512GB", "2026-09-24 开售", "10 个平台"].map((c) => (
                 <span
                   key={c}
-                  className="rounded-full border border-[rgba(120,210,155,0.5)] bg-[#dff3e6] px-3.5 py-[5px] text-[13px] text-accent-deep"
+                  className="rounded-full border border-[rgba(79,109,245,0.35)] bg-accent-soft px-3.5 py-[5px] text-[13px] text-accent-deep"
                 >
                   {c}
                 </span>

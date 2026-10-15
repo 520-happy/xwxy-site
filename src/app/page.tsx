@@ -1,118 +1,208 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "motion/react";
+import type { ComponentType } from "react";
+import { ArrowRight, Clapperboard, Smartphone, Sprout, Guitar, FolderSearch, type LucideIcon } from "lucide-react";
 import { SiteShell } from "@/components/site-shell";
 import { ColorBlockAnimation } from "@/components/color-block-animation";
+import { PhoneIll, GameIll, MusicIll, RankIll, SearchIll } from "@/components/illustrations";
 
-const CARDS = [
+interface AppEntry {
+  href: string;
+  title: string;
+  sub: string;
+  cta: string;
+  Icon: LucideIcon;
+  Ill: ComponentType<{ className?: string }>;
+  /** 卡片顶部视觉区渐变 */
+  visual: string;
+  iconTile: string;
+}
+
+const APPS: AppEntry[] = [
   {
     href: "/phone",
-    icon: "📱",
-    iconBg: "#dff3e6",
     title: "手机比价",
-    desc: "OPPO Find X10 E（16GB+512GB）各平台到手价，一小时核对一次。",
-    go: "查看比价",
+    sub: "多平台价格，一眼看清",
+    cta: "查看比价",
+    Icon: Smartphone,
+    Ill: PhoneIll,
+    visual: "linear-gradient(135deg,#e4ebff 0%,#f2f5ff 60%,#e9f0ff 100%)",
+    iconTile: "bg-[#e4ebff] text-[#3b53c9]",
   },
   {
     href: "/game",
-    icon: "🌻",
-    iconBg: "#e6f4ea",
     title: "后院保卫战",
-    desc: "种植物、挡僵尸的塔防小游戏。向日葵产阳光，豌豆射手开火，撑过 10 波进攻！",
-    go: "开始游戏",
+    sub: "种植物、挡僵尸，守住你的后院",
+    cta: "开始游戏",
+    Icon: Sprout,
+    Ill: GameIll,
+    visual: "linear-gradient(135deg,#ddf3e5 0%,#f0faf3 60%,#e2f5e9 100%)",
+    iconTile: "bg-[#ddf3e5] text-[#2e7d4f]",
   },
   {
     href: "/music",
-    icon: "🎸",
-    iconBg: "#dff3e6",
     title: "音乐教室",
-    desc: "吉他调音器、变调夹、钢琴、新手教程、抖音网红谱，还能导入自己的谱子。",
-    go: "开始学琴",
+    sub: "调音、和弦与新手教程",
+    cta: "开始学琴",
+    Icon: Guitar,
+    Ill: MusicIll,
+    visual: "linear-gradient(135deg,#ece4ff 0%,#f6f1ff 60%,#eee7ff 100%)",
+    iconTile: "bg-[#ece4ff] text-[#6f42d8]",
   },
   {
     href: "/rank",
-    icon: "📺",
-    iconBg: "#e8f7ee",
     title: "影视排行榜",
-    desc: "腾讯视频、爱奇艺、优酷电视剧热播榜 + 动漫榜，附海报，看看最近大家在追什么。",
-    go: "查看榜单",
+    sub: "热播剧集与动漫榜单",
+    cta: "查看榜单",
+    Icon: Clapperboard,
+    Ill: RankIll,
+    visual: "linear-gradient(135deg,#fdeecd 0%,#fdf6e8 60%,#fbeed3 100%)",
+    iconTile: "bg-[#fdeecd] text-[#b07a1e]",
   },
   {
     href: "https://pansou.de",
-    icon: "🔍",
-    iconBg: "#e8f7ee",
     title: "盘搜",
-    desc: "夸克网盘资源搜索，找你想要的资源。",
-    go: "去搜索",
-    external: true,
+    sub: "快速搜索网盘资源",
+    cta: "去搜索",
+    Icon: FolderSearch,
+    Ill: SearchIll,
+    visual: "linear-gradient(135deg,#d9effa 0%,#eef8fd 60%,#ddf0fa 100%)",
+    iconTile: "bg-[#d9effa] text-[#2b7fb8]",
   },
 ];
+
+function AppCard({ app, index, external }: { app: AppEntry; index: number; external?: boolean }) {
+  const inner = (
+    <>
+      <div
+        className="relative flex h-32 items-center justify-center overflow-hidden"
+        style={{ background: app.visual }}
+      >
+        <app.Ill className="h-[72px] w-[72px] transition-transform duration-300 ease-out group-hover:-translate-y-1.5 group-hover:scale-110" />
+      </div>
+      <div className="flex flex-1 flex-col p-5">
+        <div className="mb-1.5 flex items-center gap-2.5">
+          <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${app.iconTile}`}>
+            <app.Icon size={18} strokeWidth={2.1} aria-hidden="true" />
+          </span>
+          <h2 className="text-[16.5px] font-semibold text-ink">{app.title}</h2>
+        </div>
+        <p className="mb-4 text-[13.5px] leading-6 text-fog">{app.sub}</p>
+        <div className="mt-auto flex items-center justify-between border-t border-line/80 pt-3.5 text-sm font-medium text-accent-deep">
+          <span>{app.cta}</span>
+          <ArrowRight
+            size={16}
+            aria-hidden="true"
+            className="transition-transform duration-300 ease-out group-hover:translate-x-1.5"
+          />
+        </div>
+      </div>
+    </>
+  );
+  const cls =
+    "card-lift group flex flex-col overflow-hidden rounded-[20px] border border-line/90 bg-white/85 shadow-card animate-fade-up";
+  const style = { animationDelay: `${0.35 + index * 0.08}s` };
+  return external ? (
+    <a href={app.href} target="_blank" rel="noopener" className={cls} style={style} aria-label={`${app.title}（新窗口打开）`}>
+      {inner}
+    </a>
+  ) : (
+    <Link href={app.href} className={cls} style={style} aria-label={app.title}>
+      {inner}
+    </Link>
+  );
+}
 
 export default function HomePage() {
   return (
     <SiteShell>
-      <motion.div
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="glass mb-6 rounded-3xl p-8"
+      {/* ---------- 欢迎横幅 ---------- */}
+      <section
+        aria-label="欢迎"
+        className="relative mb-7 overflow-hidden rounded-[28px] border border-white/70 shadow-card"
       >
-        <h1 className="mb-2 text-[28px] font-semibold">👋 欢迎来到 xwxy</h1>
-        <p className="text-sm text-fog">左侧选一个标签，开始游览</p>
-        {/* 彩色小方块游走动画：装饰区，给足舞台让队形舒展 */}
-        <ColorBlockAnimation className="mt-5 h-64 w-full sm:h-72" />
-      </motion.div>
+        {/* 底：蓝紫柔和渐变 */}
+        <div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(118deg,#e9edff 0%,#f2eaff 48%,#e3f0ff 100%)" }}
+          aria-hidden="true"
+        />
+        {/* 光斑：缓慢漂移 */}
+        <div
+          className="animate-blob absolute -left-16 -top-20 h-64 w-64 rounded-full bg-[#b9c8ff]/45 blur-3xl"
+          aria-hidden="true"
+        />
+        <div
+          className="animate-blob absolute -bottom-24 right-[8%] h-72 w-72 rounded-full bg-[#d3bdff]/45 blur-3xl"
+          style={{ animationDelay: "-9s", animationDuration: "22s" }}
+          aria-hidden="true"
+        />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {CARDS.map((c, i) => {
-          const inner = (
-            <>
-              <div
-                className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl text-[28px]"
-                style={{ background: c.iconBg }}
-              >
-                {c.icon}
-              </div>
-              <h2 className="mb-2 text-lg font-semibold">{c.title}</h2>
-              <p className="mb-4 min-h-[48px] text-[13px] leading-6 text-fog">{c.desc}</p>
-              <div className="flex items-center justify-between border-t border-white/80 pt-3 text-sm font-medium text-accent">
-                <span>{c.go}</span>
-                <motion.span
-                  className="inline-block"
-                  whileHover={{ x: 5 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                >
-                  →
-                </motion.span>
-              </div>
-            </>
-          );
-          const cls =
-            "glass group rounded-[20px] p-6 text-left transition-all hover:-translate-y-1 hover:border-[rgba(120,210,155,0.7)] hover:shadow-[0_14px_30px_rgba(46,125,79,0.15)]";
-          return (
-            <motion.div
-              key={c.title}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.05 * i }}
+        <div className="relative grid items-center gap-6 p-7 sm:p-10 lg:grid-cols-[1.05fr_0.95fr]">
+          <div>
+            <span
+              className="animate-fade-up mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/80 bg-white/60 px-3.5 py-1.5 text-xs font-medium text-accent-deep shadow-sm backdrop-blur"
             >
-              {c.external ? (
-                <a href={c.href} target="_blank" rel="noopener" className={cls + " block h-full"}>
-                  {inner}
-                </a>
-              ) : (
-                <Link href={c.href} className={cls + " block h-full"}>
-                  {inner}
-                </Link>
-              )}
-            </motion.div>
-          );
-        })}
-      </div>
+              <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-br from-[#5b7cfa] to-[#8b5cf6]" aria-hidden="true" />
+              XWXY · 个人工具导航
+            </span>
+            <h1
+              className="animate-fade-up mb-3 text-[34px] font-extrabold leading-tight tracking-tight text-ink sm:text-[40px]"
+              style={{ animationDelay: "0.08s" }}
+            >
+              你的数字空间
+            </h1>
+            <p
+              className="animate-fade-up mb-2 text-[16px] font-medium text-fog"
+              style={{ animationDelay: "0.16s" }}
+            >
+              常用工具与兴趣，一站直达。
+            </p>
+            <p
+              className="animate-fade-up mb-7 text-[14px] leading-7 text-fog"
+              style={{ animationDelay: "0.22s" }}
+            >
+              把喜欢的工具，放在一起。
+            </p>
+            <a
+              href="#apps"
+              className="btn-primary animate-fade-up inline-flex items-center gap-2 px-7 py-3 text-[15px]"
+              style={{ animationDelay: "0.3s" }}
+            >
+              开始探索
+              <ArrowRight size={17} aria-hidden="true" />
+            </a>
+          </div>
 
-      <footer className="mt-8 text-center text-xs text-fog-light">
-        xwxy.dpdns.org · 点击卡片进入对应页面
+          {/* 漂浮几何元素：彩色小方块游走动画 */}
+          <div
+            className="animate-fade-up relative rounded-[20px] border border-white/70 bg-white/45 shadow-[inset_0_1px_0_rgb(255_255_255/0.8)] backdrop-blur-sm"
+            style={{ animationDelay: "0.24s" }}
+            aria-hidden="true"
+          >
+            <ColorBlockAnimation className="h-52 w-full sm:h-60" />
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- 应用卡片 ---------- */}
+      <section id="apps" aria-label="应用">
+        <div className="animate-fade-up mb-4 flex items-end justify-between" style={{ animationDelay: "0.3s" }}>
+          <div>
+            <h2 className="text-[20px] font-bold text-ink">应用</h2>
+            <p className="mt-1 text-[13px] text-fog">点一张卡片，进入对应功能</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {APPS.map((app, i) => (
+            <AppCard key={app.title} app={app} index={i} external={app.href.startsWith("http")} />
+          ))}
+        </div>
+      </section>
+
+      <footer className="mt-10 text-center text-xs text-fog-light">
+        xwxy.dpdns.org · 你的数字空间
       </footer>
     </SiteShell>
   );

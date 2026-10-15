@@ -12,13 +12,13 @@ function RankCard({ item, index }: { item: RankItem; index: number }) {
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: Math.min(index * 0.04, 0.4) }}
-      className="glass group overflow-hidden rounded-[18px] transition-all hover:-translate-y-1 hover:shadow-[0_14px_30px_rgba(46,125,79,0.15)]"
+      className="glass group overflow-hidden rounded-[18px] transition-all hover:-translate-y-1 hover:shadow-[0_14px_30px_rgba(79,109,245,0.15)]"
     >
       <div className="relative">
         <span
           className={cn(
             "absolute left-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full text-[13px] font-bold text-white",
-            index < 3 ? "bg-gradient-to-br from-[#3cb371] to-[#2e8b57]" : "bg-black/50"
+            index < 3 ? "bg-gradient-to-br from-[#5b7cfa] to-[#7a5cf8]" : "bg-black/50"
           )}
         >
           {index + 1}

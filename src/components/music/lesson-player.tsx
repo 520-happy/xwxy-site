@@ -132,7 +132,7 @@ function LessonRunner({ lesson, onExit }: { lesson: Lesson; onExit: () => void }
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-black/10">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-[#3cb371] to-[#2e8b57] transition-all"
+          className="h-full rounded-full bg-gradient-to-r from-[#5b7cfa] to-[#7a5cf8] transition-all"
           style={{ width: `${(idx / lesson.steps.length) * 100}%` }}
         />
       </div>
@@ -202,7 +202,7 @@ function PhraseNotes({ notes, highlight, doneCount }: { notes: LessonNote[]; hig
           key={i}
           className={cn(
             "flex w-[52px] flex-col items-center rounded-xl border border-white/80 bg-white/60 py-2 backdrop-blur-[10px]",
-            i === highlight && "border-accent bg-accent/[0.12] shadow-[0_0_0_2px_rgba(46,158,99,0.4)]",
+            i === highlight && "border-accent bg-accent/[0.12] shadow-[0_0_0_2px_rgba(79,109,245,0.4)]",
             i < doneCount && "border-accent/50 bg-accent-soft"
           )}
         >
@@ -359,7 +359,7 @@ function FollowStep({ notes, onNext }: { notes: LessonNote[]; onNext: () => void
         <div
           className={cn(
             "my-3 rounded-xl p-4 text-center text-[15px] font-semibold",
-            result.ok ? "bg-accent-soft text-accent-deep" : "bg-[#fef7e0] text-[#b06000]"
+            result.ok ? "bg-accent-soft text-accent-deep" : "bg-warn-soft text-warn"
           )}
         >
           {result.ok
