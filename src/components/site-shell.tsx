@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -10,6 +11,8 @@ import {
   Guitar,
   FolderSearch,
   ArrowUpRight,
+  Menu,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,7 +26,7 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { href: "/", label: "首页", Icon: Home },
-  { href: "/rank", label: "影视排行榜", Icon: Clapperboard },
+  { href: "/rank", label: "影视榜", Icon: Clapperboard },
   { href: "/phone", label: "手机比价", Icon: Smartphone },
   { href: "/game", label: "后院保卫战", Icon: Sprout },
   { href: "/music", label: "音乐教室", Icon: Guitar },
@@ -35,120 +38,117 @@ function isActive(pathname: string, it: NavItem) {
   return it.href === "/" ? pathname === "/" : pathname.startsWith(it.href);
 }
 
-function NavLink({ it, active, onNavigate }: { it: NavItem; active: boolean; onNavigate?: () => void }) {
-  const cls = cn(
-    "nav-item group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[14.5px]",
-    active
-      ? "active bg-accent-soft font-semibold text-accent-deep shadow-[inset_0_0_0_1px_rgb(79_109_245/0.18)]"
-      : "text-fog hover:bg-slate-900/[0.045] hover:text-ink"
-  );
-  const inner = (
-    <>
-      <span
-        className={cn(
-          "nav-icon flex h-[34px] w-[34px] flex-none items-center justify-center rounded-[10px]",
-          active ? "bg-gradient-to-br from-[#5b7cfa] to-[#7a5cf8] text-white shadow-[0_4px_12px_rgb(79_109_245/0.35)]"
-                 : "bg-slate-900/[0.05] text-fog group-hover:bg-accent-soft group-hover:text-accent-deep"
-        )}
-      >
-        <it.Icon size={17} strokeWidth={2.1} aria-hidden="true" />
-      </span>
-      <span className="flex-1">{it.label}</span>
-      {it.external && (
-        <ArrowUpRight size={14} className="text-fog-light" aria-hidden="true" />
-      )}
-    </>
-  );
-  return it.external ? (
-    <a href={it.href} target="_blank" rel="noopener" className={cls} onClick={onNavigate}>
-      {inner}
-    </a>
-  ) : (
-    <Link href={it.href} className={cls} aria-current={active ? "page" : undefined} onClick={onNavigate}>
-      {inner}
-    </Link>
-  );
-}
-
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  // 路由切换后收起移动菜单；Esc 关闭
+  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open ]);
+
+  const linkCls = (active: boolean) =>
+    cn(
+      "flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13.5px] transition-colors duration-200",
+      active
+        ? "bg-accent-soft font-semibold text-accent-deep"
+        : "text-fog hover:bg-slate-900/[0.05] hover:text-ink"
+    );
 
   return (
     <div className="min-h-screen">
-      {/* 桌面端侧边栏 */}
-      <nav
-        aria-label="主导航"
-        className="fixed bottom-0 left-0 top-0 z-[100] hidden w-[232px] flex-col border-r border-white/70 bg-white/70 px-3.5 py-5 shadow-[2px_0_28px_rgb(24_28_48/0.06)] backdrop-blur-[20px] backdrop-saturate-[1.4] md:flex"
-      >
-        <div className="flex items-center gap-3 px-2 pb-5">
-          <div
-            aria-hidden="true"
-            className="flex h-10 w-10 flex-none items-center justify-center rounded-2xl bg-gradient-to-br from-[#5b7cfa] via-[#6d6df2] to-[#8b5cf6] text-[19px] font-extrabold text-white shadow-[0_6px_16px_rgb(79_109_245/0.4)]"
+      <header className="sticky top-0 z-[100] border-b border-line/70 bg-white/85 backdrop-blur-[16px] backdrop-saturate-[1.3]">
+        <div className="mx-auto flex h-16 max-w-[1180px] items-center gap-3 px-4 sm:px-6">
+          <Link href="/" className="flex flex-none items-center gap-2.5" aria-label="XWXY 首页">
+            <span
+              aria-hidden="true"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#6d64ff] to-[#8b5cf6] text-[17px] font-extrabold text-white shadow-[0_4px_12px_rgb(99_91_255/0.35)]"
+            >
+              X
+            </span>
+            <span className="leading-tight">
+              <span className="block text-[15px] font-extrabold tracking-[0.12em] text-ink">XWXY</span>
+              <span className="block text-[10.5px] tracking-wide text-fog-light">个人工具导航</span>
+            </span>
+          </Link>
+
+          {/* 桌面端导航 */}
+          <nav aria-label="主导航" className="ml-4 hidden items-center gap-1 md:flex">
+            {NAV.map((it) => {
+              const active = isActive(pathname, it);
+              const inner = (
+                <>
+                  <it.Icon size={15} strokeWidth={2.1} aria-hidden="true" />
+                  {it.label}
+                  {it.external && <ArrowUpRight size={12} className="text-fog-light" aria-hidden="true" />}
+                </>
+              );
+              return it.external ? (
+                <a key={it.label} href={it.href} target="_blank" rel="noopener" className={linkCls(active)}>
+                  {inner}
+                </a>
+              ) : (
+                <Link key={it.label} href={it.href} className={linkCls(active)} aria-current={active ? "page" : undefined}>
+                  {inner}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* 移动端汉堡按钮 */}
+          <button
+            type="button"
+            className="ml-auto flex h-10 w-10 items-center justify-center rounded-xl text-fog transition-colors hover:bg-slate-900/[0.05] hover:text-ink md:hidden"
+            aria-expanded={open}
+            aria-label={open ? "关闭导航菜单" : "打开导航菜单"}
+            onClick={() => setOpen((v) => !v)}
           >
-            X
-          </div>
-          <div>
-            <div className="text-[17px] font-extrabold tracking-[0.14em] text-ink">XWXY</div>
-            <div className="text-[11px] tracking-wide text-fog-light">数字空间</div>
-          </div>
+            {open ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
+          </button>
         </div>
 
-        <div className="flex flex-col gap-1" role="list">
-          {NAV.map((it) => (
-            <div key={it.href + it.label} role="listitem">
-              <NavLink it={it} active={isActive(pathname, it)} />
-            </div>
-          ))}
-        </div>
+        {/* 移动端下拉菜单 */}
+        {open && (
+          <nav aria-label="主导航" className="border-t border-line/70 bg-white/95 px-4 py-3 backdrop-blur-[16px] md:hidden">
+            <ul className="flex flex-col gap-1">
+              {NAV.map((it) => {
+                const active = isActive(pathname, it);
+                const cls = cn(
+                  "flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] transition-colors duration-200",
+                  active ? "bg-accent-soft font-semibold text-accent-deep" : "text-ink hover:bg-slate-900/[0.04]"
+                );
+                const inner = (
+                  <>
+                    <span className={cn(
+                      "flex h-9 w-9 flex-none items-center justify-center rounded-[10px]",
+                      active ? "bg-gradient-to-br from-[#6d64ff] to-[#8b5cf6] text-white" : "bg-slate-900/[0.05] text-fog"
+                    )}>
+                      <it.Icon size={17} strokeWidth={2.1} aria-hidden="true" />
+                    </span>
+                    <span className="flex-1">{it.label}</span>
+                    {it.external && <ArrowUpRight size={15} className="text-fog-light" aria-hidden="true" />}
+                  </>
+                );
+                return (
+                  <li key={it.label}>
+                    {it.external ? (
+                      <a href={it.href} target="_blank" rel="noopener" className={cls}>{inner}</a>
+                    ) : (
+                      <Link href={it.href} className={cls} aria-current={active ? "page" : undefined}>{inner}</Link>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        )}
+      </header>
 
-        <div className="mt-auto px-2.5 pt-4 text-xs leading-6 text-fog-light">
-          xwxy.dpdns.org
-        </div>
-      </nav>
-
-      {/* 移动端顶栏：品牌 + 横向滚动导航，不遮挡内容 */}
-      <nav
-        aria-label="主导航"
-        className="sticky top-0 z-[100] border-b border-white/70 bg-white/75 backdrop-blur-[20px] backdrop-saturate-[1.4] md:hidden"
-      >
-        <div className="flex items-center gap-2 px-4 pb-1 pt-3">
-          <div
-            aria-hidden="true"
-            className="flex h-8 w-8 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-[#5b7cfa] via-[#6d6df2] to-[#8b5cf6] text-[15px] font-extrabold text-white shadow-[0_4px_12px_rgb(79_109_245/0.35)]"
-          >
-            X
-          </div>
-          <span className="text-[15px] font-extrabold tracking-[0.14em] text-ink">XWXY</span>
-        </div>
-        <div className="flex gap-1.5 overflow-x-auto px-3 pb-2.5 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {NAV.map((it) => {
-            const active = isActive(pathname, it);
-            const cls = cn(
-              "nav-item flex flex-none items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[13px]",
-              active
-                ? "active bg-accent-soft font-semibold text-accent-deep shadow-[inset_0_0_0_1px_rgb(79_109_245/0.18)]"
-                : "text-fog hover:bg-slate-900/[0.045] hover:text-ink"
-            );
-            const inner = (
-              <>
-                <it.Icon size={15} strokeWidth={2.1} aria-hidden="true" />
-                {it.label}
-              </>
-            );
-            return it.external ? (
-              <a key={it.href + it.label} href={it.href} target="_blank" rel="noopener" className={cls}>
-                {inner}
-              </a>
-            ) : (
-              <Link key={it.href} href={it.href} className={cls} aria-current={active ? "page" : undefined}>
-                {inner}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
-
-      <main className="relative z-[1] mx-auto min-h-screen max-w-[1180px] px-4 pb-16 pt-6 sm:px-6 md:ml-[232px] md:px-9 md:pt-8">
+      <main className="relative z-[1] mx-auto min-h-screen w-full max-w-[1180px] px-4 pb-16 pt-6 sm:px-6">
         {children}
       </main>
     </div>

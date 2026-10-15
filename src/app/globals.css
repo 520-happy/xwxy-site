@@ -1,33 +1,34 @@
 @import "tailwindcss";
 
 /* ============================================================
- * XWXY 设计系统 v2（2026-10-15）
- * 主色：白 / 浅灰 / 淡蓝 / 淡紫。柔和渐变、细腻阴影、圆角卡片、
- * 适量玻璃质感。无荧光色。
+ * XWXY 设计系统 v3（2026-10-15）
+ * 浅色主题：背景 #F6F8FF，主色 #635BFF，辅助淡蓝/淡紫/低饱和青。
+ * 卡片纯白、细边框、轻微阴影；16–24px 圆角；动画 150–250ms；
+ * 无廉价玻璃拟态、无高饱和大面积渐变。
  * ============================================================ */
 @theme {
   --font-sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Roboto, Arial, sans-serif;
 
   /* --- 画布与文字 --- */
-  --color-canvas: #f4f6fb;
+  --color-canvas: #f6f8ff;
   --color-surface: #ffffff;
-  --color-ink: #1c2030;
+  --color-ink: #232842;
   --color-fog: #5d6579;
   --color-fog-light: #929aaf;
-  --color-line: #e8ebf3;
+  --color-line: #e6e9f2;
 
-  /* --- 主色：淡蓝 --- */
-  --color-accent: #4f6df5;
-  --color-accent-deep: #3b53c9;
-  --color-accent-soft: #e9edff;
-  --color-accent-faint: #f5f7ff;
+  /* --- 主色 --- */
+  --color-accent: #635bff;
+  --color-accent-deep: #4a3fd6;
+  --color-accent-soft: #ecebff;
+  --color-accent-faint: #f5f4ff;
 
   /* --- 辅色：淡紫 --- */
   --color-violet: #8b5cf6;
   --color-violet-deep: #6f42d8;
   --color-violet-soft: #f0e9ff;
 
-  /* --- 语义小色（仅小面积点缀，不做主色） --- */
+  /* --- 语义小色（仅小面积点缀） --- */
   --color-good: #2f9e63;
   --color-good-soft: #e4f6ec;
   --color-warn: #b06000;
@@ -40,41 +41,36 @@
   --radius-xl: 24px;
   --radius-2xl: 28px;
 
-  /* --- 阴影（细腻、分层） --- */
-  --shadow-card: 0 1px 2px rgb(24 28 48 / 0.05), 0 10px 28px rgb(24 28 48 / 0.07);
-  --shadow-lift: 0 2px 6px rgb(24 28 48 / 0.06), 0 18px 44px rgb(79 109 245 / 0.14);
-  --shadow-pop: 0 16px 48px rgb(24 28 48 / 0.16);
-  --shadow-glow: 0 6px 20px rgb(79 109 245 / 0.35);
+  /* --- 阴影（轻微、自然） --- */
+  --shadow-card: 0 1px 2px rgb(35 40 66 / 0.04), 0 6px 18px rgb(35 40 66 / 0.06);
+  --shadow-lift: 0 2px 4px rgb(35 40 66 / 0.05), 0 12px 28px rgb(99 91 255 / 0.12);
+  --shadow-pop: 0 12px 32px rgb(35 40 66 / 0.14);
+  --shadow-glow: 0 4px 14px rgb(99 91 255 / 0.32);
 
-  /* --- 动效 --- */
+  /* --- 动效（150–250ms，克制） --- */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-soft: cubic-bezier(0.45, 0.05, 0.35, 1);
 
-  --animate-fade-up: fade-up 0.6s var(--ease-out) both;
-  --animate-blob: blob 18s ease-in-out infinite alternate;
-  --animate-float: float 7s ease-in-out infinite;
+  --animate-fade-up: fade-up 0.45s var(--ease-out) both;
+  --animate-blob: blob 20s ease-in-out infinite alternate;
 
   @keyframes fade-up {
-    from { opacity: 0; transform: translateY(16px); }
+    from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
   }
   @keyframes blob {
     from { transform: translate(0, 0) scale(1); }
-    to { transform: translate(48px, -32px) scale(1.15); }
-  }
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+    to { transform: translate(40px, -24px) scale(1.12); }
   }
 
   /* 兼容旧 token（值已换肤，避免旧类名失效） */
-  --color-leaf-50: #f5f7ff;
-  --color-leaf-100: #eef1ff;
-  --color-leaf-200: #e9edff;
-  --color-leaf-300: #dfe6ff;
-  --color-leaf-400: #c3d0ff;
-  --color-leaf-500: #9db2f7;
-  --color-mint: #f5f7ff;
+  --color-leaf-50: #f5f4ff;
+  --color-leaf-100: #efedff;
+  --color-leaf-200: #ecebff;
+  --color-leaf-300: #ddd9ff;
+  --color-leaf-400: #bdb4ff;
+  --color-leaf-500: #9a8ff7;
+  --color-mint: #f5f4ff;
 }
 
 html {
@@ -99,43 +95,40 @@ body::before {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(720px 460px at 88% -8%, rgb(79 109 245 / 0.10), transparent 62%),
-    radial-gradient(680px 520px at -10% 108%, rgb(139 92 246 / 0.10), transparent 60%),
-    radial-gradient(560px 380px at 48% 52%, rgb(255 255 255 / 0.7), transparent 70%);
+    radial-gradient(640px 420px at 90% -6%, rgb(99 91 255 / 0.07), transparent 62%),
+    radial-gradient(620px 480px at -8% 106%, rgb(139 92 246 / 0.07), transparent 60%);
 }
 
-/* ---------- 玻璃拟态 ---------- */
+/* ---------- 卡片（纯白、细边框、轻微阴影；弱化玻璃拟态） ---------- */
 .glass {
-  background: rgb(255 255 255 / 0.68);
-  backdrop-filter: blur(18px) saturate(1.35);
-  -webkit-backdrop-filter: blur(18px) saturate(1.35);
-  border: 1px solid rgb(255 255 255 / 0.75);
-  box-shadow: var(--shadow-card), inset 0 1px 0 rgb(255 255 255 / 0.9);
+  background: rgb(255 255 255 / 0.88);
+  backdrop-filter: blur(12px) saturate(1.15);
+  -webkit-backdrop-filter: blur(12px) saturate(1.15);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-card);
 }
 
 /* ---------- 按钮 ---------- */
 .btn-pill {
   border: 1px solid var(--color-line);
-  background: rgb(255 255 255 / 0.72);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: #fff;
   border-radius: 999px;
   cursor: pointer;
   font-family: inherit;
   color: var(--color-fog);
   transition: transform 0.18s var(--ease-out), border-color 0.18s ease,
     color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
-  box-shadow: 0 2px 10px rgb(24 28 48 / 0.05);
+  box-shadow: 0 1px 4px rgb(35 40 66 / 0.05);
 }
 .btn-pill:hover {
   transform: translateY(-1px);
-  border-color: rgb(79 109 245 / 0.45);
+  border-color: rgb(99 91 255 / 0.45);
   color: var(--color-accent-deep);
-  box-shadow: 0 4px 14px rgb(79 109 245 / 0.12);
+  box-shadow: 0 3px 10px rgb(99 91 255 / 0.12);
 }
 .btn-pill:active { transform: translateY(0) scale(0.97); }
 .btn-pill.active {
-  background: linear-gradient(135deg, #5b7cfa, #4f6df5 55%, #7a5cf8);
+  background: linear-gradient(135deg, #6d64ff, #635bff 60%, #7c5cff);
   color: #fff;
   border-color: transparent;
   font-weight: 600;
@@ -145,15 +138,15 @@ body::before {
 .btn-primary {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #5b7cfa, #4f6df5 55%, #7a5cf8);
+  background: linear-gradient(135deg, #6d64ff, #635bff 60%, #7c5cff);
   color: #fff;
   border: 0;
   border-radius: 999px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  box-shadow: var(--shadow-glow), inset 0 1px 0 rgb(255 255 255 / 0.35);
-  transition: transform 0.18s var(--ease-out), box-shadow 0.25s ease, filter 0.2s ease;
+  box-shadow: var(--shadow-glow), inset 0 1px 0 rgb(255 255 255 / 0.3);
+  transition: transform 0.18s var(--ease-out), box-shadow 0.2s ease, filter 0.2s ease;
 }
 /* 悬停高光扫过 */
 .btn-primary::after {
@@ -167,22 +160,22 @@ body::before {
 }
 .btn-primary:hover {
   transform: translateY(-2px);
-  filter: brightness(1.04);
-  box-shadow: 0 10px 28px rgb(79 109 245 / 0.45), inset 0 1px 0 rgb(255 255 255 / 0.4);
+  filter: brightness(1.05);
+  box-shadow: 0 8px 22px rgb(99 91 255 / 0.42), inset 0 1px 0 rgb(255 255 255 / 0.35);
 }
 .btn-primary:hover::after { transform: translateX(120%); }
 .btn-primary:active { transform: translateY(0) scale(0.97); }
 
-/* ---------- 卡片微交互 ---------- */
+/* ---------- 卡片微交互（悬停上浮 2–4px，200ms） ---------- */
 .card-lift {
-  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out),
-    border-color 0.3s ease, background-color 0.3s ease;
+  transition: transform 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out),
+    border-color 0.2s ease, background-color 0.2s ease;
   will-change: transform;
 }
 .card-lift:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-lift);
-  border-color: rgb(79 109 245 / 0.28);
+  border-color: rgb(99 91 255 / 0.3);
 }
 
 /* ---------- 导航 ---------- */
@@ -204,7 +197,7 @@ body::before {
 
 #apps { scroll-margin-top: 20px; }
 
-::selection { background: rgb(79 109 245 / 0.22); }
+::selection { background: rgb(99 91 255 / 0.22); }
 
 /* ---------- 动效降级 ---------- */
 @media (prefers-reduced-motion: reduce) {
