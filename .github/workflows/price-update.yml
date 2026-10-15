@@ -1,0 +1,33 @@
+name: 每小时手机比价更新
+
+on:
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: price-update
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 抓取最新价格
+        id: fetch
+        run: python3 .github/scripts/fetch_prices.py
+        continue-on-error: true
+
+      - name: 更新 prices.ts 并推送
+        if: steps.fetch.outcome == 'success'
+        run: |
+          git config user.name "xwxy-bot"
+          git config user.email "bot@xwxy.dpdns.org"
+          git pull --rebase
+          python3 scripts/update-prices.py /tmp/prices.json
