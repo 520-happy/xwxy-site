@@ -22,7 +22,7 @@ export interface PriceData {
 }
 
 export const PRICE_DATA: PriceData = {
-  updated: "2026-10-17 11:32",
+  updated: "2026-10-17 15:26",
   platforms: [
     {
       name: "OPPO 官网",
