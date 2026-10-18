@@ -1,15 +1,12 @@
 "use client";
 
 /**
- * GuitarPanel — 实时可弹的吉他（高真实感版）
+ * GuitarPanel — 实时可弹的吉他（高真实感版 v2）
  *
- * 音色：Karplus-Strong 拨弦物理建模（Web Audio 实时合成）。
- * 手感：
- * - 指板 touch-action:none，手指在弦上滑动即扫弦，扫得越快越响
- * - 点按弦格 pointerdown 直接发声（最低延迟），键盘回车同样可弹
- * - 同一根弦重拨时自动掐断前一个音（8ms 淡出），不浑浊
- * - 拨弦瞬间弦线做衰减振动动画
- * - 「制音」按钮模拟手掌闷音
+ * 外观：12 品实木指板、金属品丝、珍珠母品位标记、按弦粗细区分的琴弦。
+ * 音色：Karplus-Strong 拨弦 + 箱体共鸣（见 @/lib/guitar-audio）。
+ * 手感：点弦格即响；指板上下滑动扫弦（力度跟手速）；同弦重拨自动掐断；
+ *       制音按钮模拟手掌闷音；横向滑动可浏览高把位。
  */
 import {
   useCallback,
@@ -17,23 +14,25 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type MutableRefObject,
   type PointerEvent as RPE,
 } from "react";
 import { Card, CardTitle } from "@/components/ui/card";
-import { ac, noteName } from "@/lib/audio";
+import { noteName } from "@/lib/audio";
+import {
+  STRING_BASE,
+  STRING_LABEL,
+  fretFreq,
+  pluck,
+  pluckOpen,
+  strumChord,
+  chuck,
+  muteAll as engineMuteAll,
+  warmup,
+} from "@/lib/guitar-audio";
 import { cn } from "@/lib/utils";
 
-const STRINGS = [
-  { n: 6, label: "6弦", base: 82.41 },
-  { n: 5, label: "5弦", base: 110.0 },
-  { n: 4, label: "4弦", base: 146.83 },
-  { n: 3, label: "3弦", base: 196.0 },
-  { n: 2, label: "2弦", base: 246.94 },
-  { n: 1, label: "1弦", base: 329.63 },
-];
-
-const FRETS = [0, 1, 2, 3, 4];
+const FRETS = Array.from({ length: 13 }, (_, i) => i); // 0～12 品
+const INLAY_SINGLE = new Set([3, 5, 7, 9]);
 
 /** 和弦指法：按 6→1 弦顺序，null = 不弹（×） */
 const CHORDS: { name: string; frets: (number | null)[] }[] = [
@@ -46,136 +45,17 @@ const CHORDS: { name: string; frets: (number | null)[] }[] = [
   { name: "F", frets: [null, null, 3, 2, 1, 1] },
 ];
 
-function fretFreq(base: number, fret: number) {
-  return base * Math.pow(2, fret / 12);
-}
-
-/* ---------------- Karplus-Strong 拨弦合成 ---------------- */
-
-interface Voice {
-  bus: GainNode;
-  cur: { src: AudioBufferSourceNode; fade: GainNode } | null;
-}
-
-/** 生成一段拨弦采样 */
-function ksBuffer(c: AudioContext, freq: number, vel: number): AudioBuffer {
-  const sr = c.sampleRate;
-  const N = Math.max(2, Math.round(sr / freq));
-  const len = Math.floor(sr * 2.2);
-  const buf = c.createBuffer(1, len, sr);
-  const out = buf.getChannelData(0);
-  const line = new Float32Array(N);
-  for (let i = 0; i < N; i++) line[i] = (Math.random() * 2 - 1) * vel;
-  // 高频弦衰减稍快，更像真琴
-  const damp = 0.9965 - Math.min(0.004, (freq / 1600) * 0.004);
-  let idx = 0;
-  for (let i = 0; i < len; i++) {
-    const cur = line[idx];
-    const nxt = line[(idx + 1) % N];
-    line[idx] = damp * 0.5 * (cur + nxt);
-    out[i] = cur;
-    idx = (idx + 1) % N;
-  }
-  return buf;
-}
-
-function getMaster(c: AudioContext, ref: MutableRefObject<GainNode | null>): GainNode {
-  if (!ref.current) {
-    const comp = c.createDynamicsCompressor();
-    comp.threshold.value = -16;
-    comp.knee.value = 18;
-    comp.ratio.value = 5;
-    comp.attack.value = 0.004;
-    comp.release.value = 0.24;
-    const input = c.createGain();
-    input.gain.value = 0.9;
-    input.connect(comp);
-    comp.connect(c.destination);
-    ref.current = input;
-  }
-  return ref.current;
-}
-
-/** 在某根弦上拨响一个音；同弦重拨自动掐断前音 */
-function pluckVoice(
-  c: AudioContext,
-  master: GainNode,
-  voices: MutableRefObject<(Voice | null)[]>,
-  si: number,
-  freq: number,
-  when: number,
-  vel: number
-) {
-  let v = voices.current[si];
-  if (!v) {
-    const bus = c.createGain();
-    bus.connect(master);
-    v = { bus, cur: null };
-    voices.current[si] = v;
-  }
-  const bus = v.bus;
-  // 制音后恢复音量
-  bus.gain.cancelScheduledValues(when);
-  bus.gain.setValueAtTime(1, when);
-  // 掐断该弦上一个音（8ms 淡出防爆音）
-  if (v.cur) {
-    const { src, fade } = v.cur;
-    try {
-      fade.gain.cancelScheduledValues(when);
-      fade.gain.setValueAtTime(1, when);
-      fade.gain.linearRampToValueAtTime(0.0001, when + 0.008);
-      src.stop(when + 0.03);
-    } catch {
-      /* 已自然结束 */
-    }
-    v.cur = null;
-  }
-  const src = c.createBufferSource();
-  src.buffer = ksBuffer(c, freq, vel);
-  const lp = c.createBiquadFilter();
-  lp.type = "lowpass";
-  lp.frequency.value = Math.min(6500, freq * 14);
-  lp.Q.value = 0.4;
-  const g = c.createGain();
-  g.gain.value = 0.55;
-  const fade = c.createGain();
-  src.connect(lp);
-  lp.connect(g);
-  g.connect(fade);
-  fade.connect(bus);
-  src.start(when);
-  v.cur = { src, fade };
-  src.onended = () => {
-    if (v!.cur?.src === src) v!.cur = null;
-  };
-}
-
-/** 制音闷响（× 弦的闷音） */
-function chuck(c: AudioContext, dest: AudioNode, when: number) {
-  const sr = c.sampleRate;
-  const len = Math.floor(sr * 0.09);
-  const buf = c.createBuffer(1, len, sr);
-  const out = buf.getChannelData(0);
-  for (let i = 0; i < len; i++) out[i] = (Math.random() * 2 - 1) * (1 - i / len);
-  const src = c.createBufferSource();
-  src.buffer = buf;
-  const bp = c.createBiquadFilter();
-  bp.type = "bandpass";
-  bp.frequency.value = 900;
-  bp.Q.value = 1.2;
-  const g = c.createGain();
-  g.gain.value = 0.35;
-  src.connect(bp);
-  bp.connect(g);
-  g.connect(dest);
-  src.start(when);
-}
-
-/* ---------------- 组件 ---------------- */
+/** 弦粗细（px）与颜色：4/5/6 缠弦偏铜色，1/2/3 素弦偏银色 */
+const STRING_STYLE = [
+  { h: 4.5, c: "#c9a06a" },
+  { h: 3.8, c: "#c9a06a" },
+  { h: 3.0, c: "#bd9260" },
+  { h: 2.2, c: "#d9d9d9" },
+  { h: 1.8, c: "#d9d9d9" },
+  { h: 1.5, c: "#e2e2e2" },
+];
 
 export function GuitarPanel() {
-  const masterRef = useRef<GainNode | null>(null);
-  const voicesRef = useRef<(Voice | null)[]>([null, null, null, null, null, null]);
   const [chord, setChord] = useState("空弦");
   const [frets, setFrets] = useState<(number | null)[]>([0, 0, 0, 0, 0, 0]);
   const [lastNote, setLastNote] = useState("");
@@ -187,25 +67,17 @@ export function GuitarPanel() {
   const cellHandled = useRef(false);
   const suppressClick = useRef(false);
 
-  // 预热 AudioContext，第一次点按延迟更低
   useEffect(() => {
-    try {
-      ac();
-    } catch {
-      /* 忽略 */
-    }
+    warmup();
   }, []);
 
   /** 发声 + 显示音名 + 弦振动 */
   const uiPluck = useCallback((si: number, fret: number | null, vel: number) => {
-    const c = ac();
-    const master = getMaster(c, masterRef);
-    const t = c.currentTime;
     if (fret === null) {
-      chuck(c, master, t);
+      chuck();
     } else {
-      const f = fretFreq(STRINGS[si].base, fret);
-      pluckVoice(c, master, voicesRef, si, f, t, vel);
+      const f = fretFreq(STRING_BASE[si], fret);
+      pluck(si, f, vel);
       const nn = noteName(f);
       setLastNote(`${nn.name}${nn.oct} · ${f.toFixed(1)} Hz`);
     }
@@ -235,63 +107,35 @@ export function GuitarPanel() {
     const ch = CHORDS.find((c) => c.name === name)!;
     setChord(name);
     setFrets([...ch.frets]);
-    const c = ac();
-    const master = getMaster(c, masterRef);
-    const t0 = c.currentTime + 0.02;
-    ch.frets.forEach((f, si) => {
-      if (f === null) {
-        chuck(c, master, t0 + si * 0.024);
-        return;
-      }
-      const vel = 0.75 + 0.25 * Math.sin((si / 5) * Math.PI);
-      pluckVoice(c, master, voicesRef, si, fretFreq(STRINGS[si].base, f), t0 + si * 0.024, vel);
-    });
+    strumChord(ch.frets);
     setLastNote(`${name} 和弦`);
     setVib((v) => v.map((x) => x + 1));
   };
 
-  /** 扫弦按钮：从低音弦到高音弦 */
+  /** 扫弦按钮 */
   const strumAll = () => {
-    const c = ac();
-    const master = getMaster(c, masterRef);
-    const t0 = c.currentTime + 0.02;
-    frets.forEach((f, si) => {
-      if (f === null) {
-        chuck(c, master, t0 + si * 0.024);
-        return;
-      }
-      const vel = 0.75 + 0.25 * Math.sin((si / 5) * Math.PI);
-      pluckVoice(c, master, voicesRef, si, fretFreq(STRINGS[si].base, f), t0 + si * 0.024, vel);
-    });
+    strumChord(frets);
     setLastNote(chord === "自选" ? "扫弦" : `${chord} 扫弦`);
     setVib((v) => v.map((x) => x + 1));
   };
 
-  /** 制音：手掌闷住所有弦，下次拨弦自动松开 */
-  const muteAll = () => {
-    const c = ac();
-    const t = c.currentTime;
-    voicesRef.current.forEach((v) => {
-      if (!v) return;
-      v.bus.gain.cancelScheduledValues(t);
-      v.bus.gain.setValueAtTime(Math.max(v.bus.gain.value, 0.0001), t);
-      v.bus.gain.linearRampToValueAtTime(0.0001, t + 0.035);
-    });
+  /** 制音 */
+  const mute = () => {
+    engineMuteAll();
     setLastNote("制音 ✋");
   };
 
-  /* ---------- 指板手势：点按即响，滑动扫弦 ---------- */
+  /* ---------- 指板手势 ---------- */
 
   const stringAtY = (clientY: number): number | null => {
     const el = boardRef.current;
     if (!el) return null;
     const r = el.getBoundingClientRect();
-    const rowH = r.height / STRINGS.length;
+    const rowH = r.height / STRING_BASE.length;
     const idx = Math.floor((clientY - r.top) / rowH);
-    return idx >= 0 && idx < STRINGS.length ? idx : null;
+    return idx >= 0 && idx < STRING_BASE.length ? idx : null;
   };
 
-  /** 弦格 pointerdown：立刻发声（最低延迟），并接管后续滑动 */
   const onCellDown = (si: number, fr: number) => {
     cellHandled.current = true;
     suppressClick.current = true;
@@ -304,27 +148,37 @@ export function GuitarPanel() {
   const onBoardDown = (e: RPE<HTMLDivElement>) => {
     if (cellHandled.current) {
       cellHandled.current = false;
-      return; // 弦格已处理，只接管滑动
+      return;
     }
     const si = stringAtY(e.clientY);
     if (si === null) return;
     strumming.current = true;
     strummed.current = new Set([si]);
     lastMove.current = null;
-    uiPluck(si, frets[si], 0.9);
+    const f = frets[si];
+    if (f === null) chuck();
+    else pluckOpen(si, 0.9);
+    if (f !== null) {
+      const nn = noteName(fretFreq(STRING_BASE[si], f));
+      setLastNote(`${nn.name}${nn.oct}`);
+    }
+    setVib((v) => {
+      const n = [...v];
+      n[si] += 1;
+      return n;
+    });
   };
 
   const onBoardMove = (e: RPE<HTMLDivElement>) => {
     if (!strumming.current) return;
     const si = stringAtY(e.clientY);
     if (si === null || strummed.current.has(si)) return;
-    // 力度跟随手速：扫得越快越响
     const now = performance.now();
     let vel = 0.8;
     const lm = lastMove.current;
     if (lm) {
       const dt = Math.max(1, now - lm.t);
-      const speed = Math.abs(e.clientY - lm.y) / dt; // px/ms
+      const speed = Math.abs(e.clientY - lm.y) / dt;
       vel = Math.min(1, Math.max(0.55, 0.55 + speed * 0.55));
     }
     lastMove.current = { y: e.clientY, t: now };
@@ -338,7 +192,6 @@ export function GuitarPanel() {
     lastMove.current = null;
   };
 
-  /** 键盘回车/空格点弦格（click 无 pointerdown 时） */
   const onCellClick = (si: number, fr: number) => {
     if (suppressClick.current) {
       suppressClick.current = false;
@@ -357,8 +210,8 @@ export function GuitarPanel() {
           </span>
         </div>
         <p className="mb-4 text-[13px] leading-6 text-fog">
-          真实拨弦合成音色。点弦格即弹；在指板上<span className="font-medium text-ink">上下滑动扫弦</span>
-          ，扫得越快越响。
+          12 品实木指板，拨弦带箱体共鸣。点弦格即弹；在指板上
+          <span className="font-medium text-ink">上下滑动扫弦</span>，扫得越快越响；横滑浏览高把位。
         </p>
 
         {/* 和弦 */}
@@ -375,89 +228,121 @@ export function GuitarPanel() {
           ))}
         </div>
 
-        {/* 指板：整块 touch-action:none，滑动不抢页面滚动 */}
-        <div
-          ref={boardRef}
-          className="select-none rounded-2xl border border-line bg-white/70 p-2"
-          onPointerDown={onBoardDown}
-          onPointerMove={onBoardMove}
-          onPointerUp={endStrum}
-          onPointerCancel={endStrum}
-          onPointerLeave={endStrum}
-          style={{ touchAction: "none" }}
-          role="application"
-          aria-label="吉他指板，6弦乘5品，滑动可扫弦"
-        >
-          {STRINGS.map((s, si) => {
-            const f = frets[si];
-            const note = f === null ? "×" : noteName(fretFreq(s.base, f)).name;
-            const h = 2 + (6 - si) * 0.7;
-            return (
-              <div key={s.n} className="flex items-center gap-1.5 py-[3px]">
-                <div className="w-11 flex-none text-center">
-                  <div className="text-[11px] font-medium text-fog">{s.label}</div>
-                  <div
-                    className={cn(
-                      "text-[13px] font-bold",
-                      f === null ? "text-fog-light" : "text-accent-deep"
-                    )}
-                  >
-                    {note}
-                  </div>
+        {/* 指板：横向滚动看高把位；touch-action: pan-x 让竖滑扫弦、横滑滚动互不干扰 */}
+        <div className="overflow-x-auto rounded-2xl border border-[#3d2a16] shadow-[inset_0_2px_12px_rgba(0,0,0,0.45)]">
+          <div
+            ref={boardRef}
+            className="min-w-[680px] select-none bg-[linear-gradient(180deg,#4a3221_0%,#402b1a_55%,#37271a_100%)]"
+            onPointerDown={onBoardDown}
+            onPointerMove={onBoardMove}
+            onPointerUp={endStrum}
+            onPointerCancel={endStrum}
+            onPointerLeave={endStrum}
+            style={{ touchAction: "pan-x" }}
+            role="application"
+            aria-label="吉他指板，6弦乘12品，上下滑动可扫弦，左右滑动浏览把位"
+          >
+            {/* 品数标尺 */}
+            <div className="flex">
+              <div className="sticky left-0 z-20 w-14 flex-none bg-[#2e2013]" />
+              {FRETS.map((fr) => (
+                <div
+                  key={fr}
+                  className="min-w-[46px] flex-1 py-1 text-center text-[10px] font-medium tracking-wide text-[#e8d5ac]/60"
+                >
+                  {fr === 0 ? "空" : fr}
                 </div>
-                <div className="relative flex flex-1 gap-1">
-                  {/* 弦线：拨弦时做衰减振动 */}
+              ))}
+            </div>
+
+            {STRING_BASE.map((base, si) => {
+              const f = frets[si];
+              const note = f === null ? "×" : noteName(fretFreq(base, f)).name;
+              const ss = STRING_STYLE[si];
+              return (
+                <div key={si} className="relative flex items-center">
+                  {/* 琴弦 */}
                   <div
                     aria-hidden="true"
-                    className="pointer-events-none absolute left-0 right-0 top-1/2"
-                    style={{ transform: "translateY(-50%)" }}
+                    className="pointer-events-none absolute left-0 right-0 top-1/2 z-[5] -translate-y-1/2"
                   >
                     <div
                       key={vib[si]}
-                      className="string-vib rounded bg-gradient-to-r from-zinc-300 via-zinc-400 to-zinc-300"
-                      style={{ height: h, "--amp": `${3.6 - si * 0.45}px` } as CSSProperties}
+                      className="string-vib rounded-full"
+                      style={
+                        {
+                          height: ss.h,
+                          background: `linear-gradient(180deg, #fff8, ${ss.c}, #0006)`,
+                          boxShadow: "0 1px 2px rgba(0,0,0,0.55)",
+                          "--amp": `${3.6 - si * 0.45}px`,
+                        } as CSSProperties
+                      }
                     />
                   </div>
+                  {/* 弦标签（ sticky，不随横滑移走） */}
+                  <div className="sticky left-0 z-20 flex w-14 flex-none flex-col items-center justify-center bg-[#2e2013]/95 py-1 backdrop-blur-[1px]">
+                    <span className="text-[11px] font-semibold text-[#e8d5ac]">
+                      {STRING_LABEL[si]}
+                    </span>
+                    <span
+                      className={cn(
+                        "text-[13px] font-bold",
+                        f === null ? "text-[#8a7a5f]" : "text-amber-200"
+                      )}
+                    >
+                      {note}
+                    </span>
+                  </div>
+                  {/* 弦格 */}
                   {FRETS.map((fr) => {
                     const active = f === fr;
+                    const inlay = INLAY_SINGLE.has(fr) || fr === 12;
                     return (
                       <button
                         key={fr}
                         type="button"
                         onPointerDown={() => onCellDown(si, fr)}
                         onClick={() => onCellClick(si, fr)}
-                        aria-label={`${s.label}${fr === 0 ? "空弦" : `${fr}品`}`}
+                        aria-label={`${STRING_LABEL[si]}${fr === 0 ? "空弦" : `${fr}品`}`}
                         className={cn(
-                          "relative z-[1] flex h-11 flex-1 items-center justify-center rounded-lg border text-[13px] font-medium transition-colors duration-150",
-                          active
-                            ? "border-accent bg-accent-soft text-accent-deep shadow-[0_0_0_2px_rgb(99_91_255/0.25)]"
-                            : "border-line/70 bg-white/60 text-fog-light hover:border-accent/60 hover:text-accent-deep active:bg-accent-soft"
+                          "relative z-10 h-14 min-w-[46px] flex-1 border-l-2",
+                          fr === 0
+                            ? "border-l-[7px] border-l-[#f2e9d4]"
+                            : "border-l-[#cfc6b2]/70",
+                          "transition-colors duration-150",
+                          "hover:bg-white/10 active:bg-white/20"
                         )}
                       >
-                        {fr === 0 ? (
+                        {/* 品位标记 */}
+                        {inlay && (
                           <span
-                            className={cn(
-                              "flex h-5 w-5 items-center justify-center rounded-full border-2",
-                              active ? "border-accent-deep" : "border-zinc-300"
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-0 flex items-center justify-center"
+                          >
+                            {fr === 12 ? (
+                              <span className="flex w-full items-center justify-around px-2">
+                                <span className="h-2.5 w-2.5 rounded-full bg-[#fde68a]/85 shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
+                                <span className="h-2.5 w-2.5 rounded-full bg-[#fde68a]/85 shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
+                              </span>
+                            ) : (
+                              <span className="h-3 w-3 rounded-full bg-[#fde68a]/85 shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
                             )}
+                          </span>
+                        )}
+                        {/* 按弦指示 */}
+                        {active && (
+                          <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-x-2 top-1/2 h-8 -translate-y-1/2 rounded-full bg-amber-100/30 ring-2 ring-amber-100/70"
                           />
-                        ) : (
-                          fr
                         )}
                       </button>
                     );
                   })}
-                  <div className="flex w-7 flex-none items-center justify-center">
-                    {f === null ? (
-                      <span className="text-sm font-bold text-fog-light">×</span>
-                    ) : (
-                      <span className="text-[11px] text-fog">{f}品</span>
-                    )}
-                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         <div className="mt-4 flex gap-2">
@@ -465,7 +350,7 @@ export function GuitarPanel() {
             扫弦 ♪
           </button>
           <button
-            onClick={muteAll}
+            onClick={mute}
             className="btn-pill px-5 py-3 text-[15px]"
             aria-label="制音，闷住所有琴弦"
           >
