@@ -10,6 +10,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Card, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { noteName, cnName } from "@/lib/audio";
+import { zeroLessons } from "./learn-zero";
 import {
   STRING_BASE,
   STRING_LABEL,
@@ -33,9 +34,13 @@ function Remember({ children }: { children: ReactNode }) {
   );
 }
 
+export { Remember };
+
 function Para({ children }: { children: ReactNode }) {
   return <p className="text-[15px] leading-8 text-zinc-700">{children}</p>;
 }
+
+export { Para };
 
 /** 交互部件统一面板：浅绿底，和文字区视觉分离，一眼就知道“这里可以点” */
 function IBox({ children }: { children: ReactNode }) {
@@ -43,6 +48,8 @@ function IBox({ children }: { children: ReactNode }) {
     <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">{children}</div>
   );
 }
+
+export { IBox };
 
 /** 手指颜色编码（抄 Yousician）：1指天蓝 2指绿 3指黄 4指红 */
 const FINGER_COLORS = ["", "#38bdf8", "#34d399", "#fbbf24", "#fb7185"];
@@ -869,11 +876,13 @@ function FirstSongWidget() {
 
 /* ================= 课程主体 ================= */
 
-interface Lesson {
+export interface Lesson {
   id: string;
   title: string;
   sub: string;
   body: ReactNode;
+  /** 章节名，相同时合并显示章节头 */
+  chapter?: string;
 }
 
 const DONE_KEY = "zero-guitar-done";
@@ -904,10 +913,12 @@ export function ZeroGuitarCourse({ onGoTuner }: { onGoTuner?: () => void }) {
   };
 
   const lessons: Lesson[] = [
+    ...zeroLessons.map((l) => ({ ...l, chapter: "第 0 章 · 先玩会音乐" })),
     {
       id: "anatomy",
       title: "认识吉他",
       sub: "先叫得出每个部位的名字",
+      chapter: "第 1 章 · 吉他入门",
       body: (
         <div className="space-y-3">
           <Para>
@@ -1019,7 +1030,8 @@ export function ZeroGuitarCourse({ onGoTuner }: { onGoTuner?: () => void }) {
       <Card>
         <CardTitle>🎓 从零开始学吉他</CardTitle>
         <p className="mb-4 text-[13px] leading-6 text-fog">
-          9 节课，每节都能动手点、动手听。不懂乐理、没摸过琴也能学。进度自动保存在本机。
+          {lessons.length} 节课，每节都能动手点、动手听。第 0 章连乐理都不用懂，纯玩游戏热身。
+          不懂乐理、没摸过琴也能学。进度自动保存在本机。
         </p>
         <div className="flex items-center gap-3">
           <div className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-100">
@@ -1034,52 +1046,65 @@ export function ZeroGuitarCourse({ onGoTuner }: { onGoTuner?: () => void }) {
         </div>
         {doneCount === lessons.length && (
           <p className="mt-3 text-sm font-medium text-emerald-700">
-            🎉 9 节全学完！去「🎶 吉他弹奏」页自由弹吧，或者挑战「🎯 互动跟学」里的歌。
+            🎉 {lessons.length} 节全学完！去「🎶 吉他弹奏」页自由弹吧，或者挑战「🎯 互动跟学」里的歌。
           </p>
         )}
       </Card>
 
-      {/* 课程列表 */}
-      {lessons.map((l, i) => {
-        const isDone = done.includes(l.id);
-        return (
-          <Card key={l.id} className={cn(isDone && "border-emerald-300/40")}>
-            <div className="mb-1 flex items-center gap-2.5">
-              <span
-                className={cn(
-                  "flex h-9 w-9 flex-none items-center justify-center rounded-full text-[15px] font-bold",
-                  isDone ? "bg-emerald-500 text-white" : "bg-emerald-100 text-emerald-700"
-                )}
-              >
-                {isDone ? "✓" : i + 1}
-              </span>
-              <div>
-                <h3 className="text-xl font-bold leading-7 text-zinc-900">
-                  第 {i + 1} 课：{l.title}
-                </h3>
-                <p className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-fog">
-                  {l.sub}
-                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
-                    约 5 分钟 · 零基础
-                  </span>
-                </p>
-              </div>
-            </div>
-            <div className="mt-3">{l.body}</div>
-            <button
-              onClick={() => toggleDone(l.id)}
-              className={cn(
-                "mt-4 w-full rounded-full py-3 text-sm font-medium transition-all active:scale-[0.98]",
-                isDone
-                  ? "border border-emerald-300 bg-emerald-50 text-emerald-700"
-                  : "bg-emerald-600 text-white shadow-sm hover:bg-emerald-500"
+      {/* 课程列表（按章节分组） */}
+      {(() => {
+        let lastChapter = "";
+        return lessons.map((l, i) => {
+          const isDone = done.includes(l.id);
+          const showChapter = l.chapter && l.chapter !== lastChapter;
+          lastChapter = l.chapter ?? "";
+          return (
+            <div key={l.id}>
+              {showChapter && (
+                <h2 className="mb-3 mt-6 flex items-center gap-2 text-lg font-bold text-zinc-900">
+                  <span className="h-5 w-1.5 rounded-full bg-emerald-500" />
+                  {l.chapter}
+                </h2>
               )}
-            >
-              {isDone ? "✓ 学会了（点此取消）" : "这节我学会了"}
-            </button>
-          </Card>
-        );
-      })}
+              <Card className={cn("mb-4", isDone && "border-emerald-300/40")}>
+                <div className="mb-1 flex items-center gap-2.5">
+                  <span
+                    className={cn(
+                      "flex h-9 w-9 flex-none items-center justify-center rounded-full text-[15px] font-bold",
+                      isDone ? "bg-emerald-500 text-white" : "bg-emerald-100 text-emerald-700"
+                    )}
+                  >
+                    {isDone ? "✓" : i + 1}
+                  </span>
+                  <div>
+                    <h3 className="text-xl font-bold leading-7 text-zinc-900">
+                      第 {i + 1} 课：{l.title}
+                    </h3>
+                    <p className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-fog">
+                      {l.sub}
+                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                        约 5 分钟 · 零基础
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3">{l.body}</div>
+                <button
+                  onClick={() => toggleDone(l.id)}
+                  className={cn(
+                    "mt-4 w-full rounded-full py-3 text-sm font-medium transition-all active:scale-[0.98]",
+                    isDone
+                      ? "border border-emerald-300 bg-emerald-50 text-emerald-700"
+                      : "bg-emerald-600 text-white shadow-sm hover:bg-emerald-500"
+                  )}
+                >
+                  {isDone ? "✓ 学会了（点此取消）" : "这节我学会了"}
+                </button>
+              </Card>
+            </div>
+          );
+        });
+      })()}
 
       {/* 钢琴快速入门（保留） */}
       <Card>

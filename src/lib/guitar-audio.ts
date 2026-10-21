@@ -91,7 +91,8 @@ function ksBuffer(c: AudioContext, freq: number, vel: number): AudioBuffer {
   const out = buf.getChannelData(0);
   const line = new Float32Array(N);
   for (let i = 0; i < N; i++) line[i] = (Math.random() * 2 - 1) * vel;
-  const damp = 0.9965 - Math.min(0.004, (freq / 1600) * 0.004);
+  // 阻尼加一点点随机：每次拨弦衰减略有不同，像真手弹的
+  const damp = 0.9965 - Math.min(0.004, (freq / 1600) * 0.004) + (Math.random() - 0.5) * 0.0006;
   let idx = 0;
   for (let i = 0; i < len; i++) {
     const cur = line[idx];
@@ -137,10 +138,11 @@ export function pluck(si: number, freq: number, vel = 0.9, when?: number): void 
   src.buffer = ksBuffer(c, freq, vel);
   const lp = c.createBiquadFilter();
   lp.type = "lowpass";
-  lp.frequency.value = Math.min(7000, freq * 16);
+  // 亮度随每次拨弦轻微浮动：真手弹的每一下都不完全一样
+  lp.frequency.value = Math.min(7000, freq * 16) * (0.9 + Math.random() * 0.2);
   lp.Q.value = 0.4;
   const g = c.createGain();
-  g.gain.value = 0.5;
+  g.gain.value = 0.5 * (0.94 + Math.random() * 0.12);
   const fade = c.createGain();
   src.connect(lp);
   lp.connect(g);

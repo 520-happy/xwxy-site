@@ -61,6 +61,7 @@ export function GuitarPanel() {
   const [lastNote, setLastNote] = useState("");
   const [vib, setVib] = useState<number[]>([0, 0, 0, 0, 0, 0]);
   const boardRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const strumming = useRef(false);
   const strummed = useRef<Set<number>>(new Set());
   const lastMove = useRef<{ y: number; t: number } | null>(null);
@@ -127,8 +128,7 @@ export function GuitarPanel() {
 
   /* ---------- 指板手势 ---------- */
 
-  const stringAtY = (clientY: number): number | null => {
-    const el = boardRef.current;
+  const stringAtY = (el: HTMLDivElement | null, clientY: number): number | null => {
     if (!el) return null;
     const r = el.getBoundingClientRect();
     const rowH = r.height / STRING_BASE.length;
@@ -150,7 +150,7 @@ export function GuitarPanel() {
       cellHandled.current = false;
       return;
     }
-    const si = stringAtY(e.clientY);
+    const si = stringAtY(boardRef.current, e.clientY);
     if (si === null) return;
     strumming.current = true;
     strummed.current = new Set([si]);
@@ -171,7 +171,7 @@ export function GuitarPanel() {
 
   const onBoardMove = (e: RPE<HTMLDivElement>) => {
     if (!strumming.current) return;
-    const si = stringAtY(e.clientY);
+    const si = stringAtY(boardRef.current, e.clientY);
     if (si === null || strummed.current.has(si)) return;
     const now = performance.now();
     let vel = 0.8;
@@ -192,6 +192,34 @@ export function GuitarPanel() {
     lastMove.current = null;
   };
 
+  /* ---------- 琴体手势：在音孔区扫弦 ---------- */
+
+  const onBodyDown = (e: RPE<HTMLDivElement>) => {
+    const si = stringAtY(bodyRef.current, e.clientY);
+    if (si === null) return;
+    strumming.current = true;
+    strummed.current = new Set([si]);
+    lastMove.current = null;
+    uiPluck(si, frets[si], 0.9);
+  };
+
+  const onBodyMove = (e: RPE<HTMLDivElement>) => {
+    if (!strumming.current) return;
+    const si = stringAtY(bodyRef.current, e.clientY);
+    if (si === null || strummed.current.has(si)) return;
+    const now = performance.now();
+    let vel = 0.8;
+    const lm = lastMove.current;
+    if (lm) {
+      const dt = Math.max(1, now - lm.t);
+      const speed = Math.abs(e.clientY - lm.y) / dt;
+      vel = Math.min(1, Math.max(0.55, 0.55 + speed * 0.55));
+    }
+    lastMove.current = { y: e.clientY, t: now };
+    strummed.current.add(si);
+    uiPluck(si, frets[si], vel);
+  };
+
   const onCellClick = (si: number, fr: number) => {
     if (suppressClick.current) {
       suppressClick.current = false;
@@ -210,8 +238,8 @@ export function GuitarPanel() {
           </span>
         </div>
         <p className="mb-4 text-[13px] leading-6 text-fog">
-          12 品实木指板，拨弦带箱体共鸣。点弦格即弹；在指板上
-          <span className="font-medium text-ink">上下滑动扫弦</span>，扫得越快越响；横滑浏览高把位。
+          琴头、指板、琴体都在这了。点弦格即弹；在指板或
+          <span className="font-medium text-ink">琴体音孔区上下滑动扫弦</span>，扫得越快越响；横滑浏览高把位。
         </p>
 
         {/* 和弦 */}
@@ -244,11 +272,11 @@ export function GuitarPanel() {
           >
             {/* 品数标尺 */}
             <div className="flex">
-              <div className="sticky left-0 z-20 w-14 flex-none bg-[#2e2013]" />
+              <div className="sticky left-0 z-20 w-[76px] flex-none bg-[#241a0e]" />
               {FRETS.map((fr) => (
                 <div
                   key={fr}
-                  className="min-w-[46px] flex-1 py-1 text-center text-[10px] font-medium tracking-wide text-[#e8d5ac]/60"
+                  className="flex h-6 min-w-[46px] flex-1 items-center justify-center text-[10px] font-medium tracking-wide text-[#e8d5ac]/60"
                 >
                   {fr === 0 ? "空" : fr}
                 </div>
@@ -279,8 +307,19 @@ export function GuitarPanel() {
                       }
                     />
                   </div>
-                  {/* 弦标签（ sticky，不随横滑移走） */}
-                  <div className="sticky left-0 z-20 flex w-14 flex-none flex-col items-center justify-center bg-[#2e2013]/95 py-1 backdrop-blur-[1px]">
+                  {/* 弦标签 + 琴头（含弦钮，3左3右） */}
+                  <div className="sticky left-0 z-20 flex w-[76px] flex-none flex-col items-center justify-center bg-[linear-gradient(180deg,#3a2a17_0%,#2b1f11_100%)] py-1">
+                    {/* 弦钮 */}
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "absolute top-1/2 flex -translate-y-1/2 items-center",
+                        si < 3 ? "left-1" : "right-1 flex-row-reverse"
+                      )}
+                    >
+                      <span className="block h-[5px] w-2.5 bg-[#8a7a5f]" />
+                      <span className="block h-4 w-4 rounded-full bg-[radial-gradient(circle_at_35%_30%,#f0f0f0,#9aa0a6_70%,#6b7280)] shadow-[0_1px_2px_rgba(0,0,0,0.6)]" />
+                    </span>
                     <span className="text-[11px] font-semibold text-[#e8d5ac]">
                       {STRING_LABEL[si]}
                     </span>
@@ -342,6 +381,68 @@ export function GuitarPanel() {
                 </div>
               );
             })}
+          </div>
+
+          {/* 琴体：音孔 + 琴桥，弦延续下来；音孔区可扫弦 */}
+          <div
+            ref={bodyRef}
+            className="relative min-w-[680px] select-none overflow-hidden border-t-4 border-[#241a0e] bg-[linear-gradient(155deg,#e3ad61_0%,#d0973f_45%,#b37e31_100%)]"
+            onPointerDown={onBodyDown}
+            onPointerMove={onBodyMove}
+            onPointerUp={endStrum}
+            onPointerCancel={endStrum}
+            onPointerLeave={endStrum}
+            style={{ touchAction: "pan-x" }}
+            role="application"
+            aria-label="吉他琴体，在音孔区域上下滑动可以扫弦"
+          >
+            {/* 对齐上方品数标尺 */}
+            <div className="h-6" />
+            {STRING_BASE.map((_, si) => {
+              const ss = STRING_STYLE[si];
+              return (
+                <div key={si} className="relative flex h-14 items-center">
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-0 right-0 top-1/2 -translate-y-1/2"
+                  >
+                    <div
+                      className="rounded-full"
+                      style={{
+                        height: ss.h,
+                        background: `linear-gradient(180deg, #fff8, ${ss.c}, #0006)`,
+                        boxShadow: "0 1px 2px rgba(0,0,0,0.55)",
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+            {/* 音孔 + 玫瑰饰圈 */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute left-[30%] top-[104px] h-[132px] w-[132px]"
+            >
+              <div className="h-full w-full rounded-full bg-[#170f06] shadow-[inset_0_6px_18px_rgba(0,0,0,0.95)] ring-4 ring-[#8a5a24]" />
+              <div className="absolute inset-2 rounded-full border-2 border-dashed border-[#e8c87e]/60" />
+            </div>
+            {/* 琴桥 + 弦钉 */}
+            <div aria-hidden="true" className="pointer-events-none absolute right-[7%] top-[252px]">
+              <div className="h-[18px] w-[168px] rounded-md bg-[#33200f] shadow-[0_3px_8px_rgba(0,0,0,0.55)]" />
+              <div className="mt-1.5 flex w-[168px] justify-around px-2">
+                {STRING_BASE.map((_, si) => (
+                  <span key={si} className="h-2 w-2 rounded-full bg-[#f5ecd8] shadow" />
+                ))}
+              </div>
+            </div>
+            {/* 木纹高光 */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_70%_20%,rgba(255,240,200,0.25),transparent_60%)]"
+            />
+            <p className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] text-[#5e3d20]/90">
+              👆 在音孔上上下滑动，试试扫弦
+            </p>
           </div>
         </div>
 
