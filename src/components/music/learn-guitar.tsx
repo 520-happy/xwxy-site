@@ -51,6 +51,56 @@ function IBox({ children }: { children: ReactNode }) {
 
 export { IBox };
 
+/* ================= 一步一屏：一次只讲一件事 ================= */
+
+function Steps({ steps }: { steps: ReactNode[] }) {
+  const [i, setI] = useState(0);
+  const last = i === steps.length - 1;
+  return (
+    <div>
+      <div key={i} className="step-in">{steps[i]}</div>
+      <div className="mt-5 flex items-center gap-3">
+        {i > 0 ? (
+          <button
+            onClick={() => setI(i - 1)}
+            className="btn-pill flex-none px-5 py-2.5 text-sm"
+          >
+            ← 上一步
+          </button>
+        ) : (
+          <span className="flex-none text-xs text-fog-light">第 1 步</span>
+        )}
+        <div className="flex flex-1 items-center justify-center gap-1.5" role="tablist" aria-label="步骤">
+          {steps.map((_, k) => (
+            <button
+              key={k}
+              onClick={() => setI(k)}
+              aria-label={`跳到第 ${k + 1} 步`}
+              className={cn(
+                "h-2 rounded-full transition-all",
+                k === i ? "w-6 bg-emerald-500" : "w-2 bg-zinc-200 hover:bg-zinc-300"
+              )}
+            />
+          ))}
+        </div>
+        {last ? (
+          <span className="flex-none text-sm font-medium text-emerald-700">✓ 本节学完啦</span>
+        ) : (
+          <button
+            onClick={() => setI(i + 1)}
+            className="btn-primary flex-none px-6 py-2.5 text-sm"
+          >
+            下一步 →
+          </button>
+        )}
+      </div>
+      <style>{`.step-in{animation:stepIn .25s ease}@keyframes stepIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
+    </div>
+  );
+}
+
+export { Steps };
+
 /** 手指颜色编码（抄 Yousician）：1指天蓝 2指绿 3指黄 4指红 */
 const FINGER_COLORS = ["", "#38bdf8", "#34d399", "#fbbf24", "#fb7185"];
 
@@ -406,27 +456,6 @@ function TabLines({ cols, title }: { cols: { si: number; fret: number }[]; title
           ))}
         </div>
       </div>
-    </div>
-  );
-}
-
-function TabReaderWidget() {
-  return (
-    <div>
-      <div className="mb-4 space-y-3">
-        <Para>
-          <b>六线谱就是“吉他专用说明书”。</b>6 条横线 = 6
-          根弦，<b>最上面那条是最细的 1 弦，最下面是最粗的 6 弦</b>（和抱着吉他低头看的方向一致）。
-        </Para>
-        <Para>
-          线上的<b>数字 = 按第几品</b>，<b>0 = 空弦</b>（什么都不按，直接拨）。从左往右依次弹，看到哪个数字就弹哪根弦的第几品。
-        </Para>
-      </div>
-      <TabLines cols={TAB_EXERCISE} title="练习：1弦上弹 mi-fa-sol-la（0-1-3-5）" />
-      <TabLines cols={TAB_TWINKLE} title="挑战：《小星星》第一句（全在1弦上）" />
-      <Remember>
-        看不懂谱不是笨，是没人告诉你规则：<b>线=弦（上细下粗），数字=品数，0=空弦</b>。记住这三句，任何六线谱你都会看了。
-      </Remember>
     </div>
   );
 }
@@ -880,7 +909,8 @@ export interface Lesson {
   id: string;
   title: string;
   sub: string;
-  body: ReactNode;
+  /** 一步一屏：每步只讲一件事 */
+  steps: ReactNode[];
   /** 章节名，相同时合并显示章节头 */
   chapter?: string;
 }
@@ -919,106 +949,125 @@ export function ZeroGuitarCourse({ onGoTuner }: { onGoTuner?: () => void }) {
       title: "认识吉他",
       sub: "先叫得出每个部位的名字",
       chapter: "第 1 章 · 吉他入门",
-      body: (
-        <div className="space-y-3">
-          <Para>
-            吉他从上到下分三段：<b>琴头</b>（最上面，装着 6 个弦钮）、<b>琴颈</b>
-            （长条，左手握的地方）、<b>琴身</b>（大肚子，负责把声音放大）。
-          </Para>
-          <Para>
-            别小看这一步：以后教程里说“按 3 弦 2 品”“拧紧弦钮”，你得立刻知道在哪。点下面的图，一个个认：
-          </Para>
-          <IBox><AnatomyWidget /></IBox>
-        </div>
-      ),
+      steps: [
+        <div key="s1" className="space-y-3">
+          <Para>吉他分三段：<b>琴头</b>（最上面，6 个弦钮）、<b>琴颈</b>（长条，左手握）、<b>琴身</b>（大肚子，放大声音）。</Para>
+          <Para>别小看这一步：以后说“按 3 弦 2 品”，你得立刻知道在哪。下一步，点图认一认 👇</Para>
+        </div>,
+        <IBox key="s2"><AnatomyWidget /></IBox>,
+        <Remember key="s3">认全 8 个部位才算过关。调音拧<b>弦钮</b>，按弦按<b>指板</b>，拨弦在<b>音孔</b>上方。</Remember>,
+      ],
     },
     {
       id: "strings",
       title: "六根弦与标准音",
       sub: "E A D G B E，一辈子都要背",
-      body: (
-        <div className="space-y-3">
-          <Para>
-            吉他有 <b>6 根弦</b>，从<b>最粗到最细</b>叫 6弦、5弦、4弦、3弦、2弦、1弦。
-            每根弦空弦（什么都不按）都有固定的音高，叫<b>标准音</b>：
-          </Para>
-          <IBox><OpenStringsWidget /></IBox>
-        </div>
-      ),
+      steps: [
+        <div key="s1" className="space-y-3">
+          <Para>吉他有 <b>6 根弦</b>，从<b>最粗到最细</b>叫 6弦 → 1弦。</Para>
+          <Para>每根弦“什么都不按、直接拨响”，都有固定的音高，叫<b>标准音</b>。点一点，都听听 👇</Para>
+        </div>,
+        <IBox key="s2"><OpenStringsWidget /></IBox>,
+      ],
     },
     {
       id: "tuning",
       title: "调音：每天第一件事",
       sub: "弦不准，练了也白练",
-      body: <IBox><TuneWidget onGoTuner={onGoTuner} /></IBox>,
+      steps: [
+        <div key="s1" className="space-y-3">
+          <Para>弦是金属的，温度一变就跑音。<b>每次拿起吉他，第一件事就是调音</b>，熟练后 1 分钟搞定。</Para>
+        </div>,
+        <div key="s2" className="space-y-3">
+          <Para><b>拧紧 → 音变高，拧松 → 音变低。</b></Para>
+          <Para>边拨弦边拧，每次只拧 <b>1/8 圈</b>。两个声音完全重合、不“打架”就是准了。</Para>
+        </div>,
+        <IBox key="s3"><TuneWidget onGoTuner={onGoTuner} /></IBox>,
+        <Remember key="s4">新手最容易<b>拧过头把弦拧断</b>。记住：少拧、多听，接近了就停。</Remember>,
+      ],
     },
     {
       id: "posture",
       title: "持琴姿势",
       sub: "姿势对了，后面全是顺的",
-      body: (
-        <div className="space-y-3">
-          <Para>
-            姿势这东西，错着练三个月不如对着练三天。核心就一句：
-            <b>身体放松，琴放得稳，双手各就各位</b>。一条条对照：
-          </Para>
-          <IBox><PostureWidget /></IBox>
-        </div>
-      ),
+      steps: [
+        <div key="s1" className="space-y-3">
+          <Para>姿势错，练三个月不如对的三天。核心一句：<b>身体放松，琴放稳，双手就位</b>。</Para>
+          <Para>拿起琴（或想象拿着），一条条对照，做到就点一下 👇</Para>
+        </div>,
+        <IBox key="s2"><PostureWidget /></IBox>,
+      ],
     },
     {
       id: "tab",
       title: "看懂六线谱",
       sub: "吉他谱的阅读规则，3 分钟学会",
-      body: <IBox><TabReaderWidget /></IBox>,
+      steps: [
+        <div key="s1" className="space-y-3">
+          <Para><b>六线谱 = 吉他说明书。</b>6 条线 = 6 根弦，<b>上细下粗</b>（最上面是 1 弦）。</Para>
+          <Para>线上的<b>数字 = 按第几品</b>，<b>0 = 空弦</b>（直接拨）。从左往右弹就行。</Para>
+        </div>,
+        <IBox key="s2"><TabLines cols={TAB_EXERCISE} title="先练：1弦上弹 0-1-3-5（点数字听）" /></IBox>,
+        <IBox key="s3"><TabLines cols={TAB_TWINKLE} title="挑战：《小星星》第一句" /></IBox>,
+        <Remember key="s4"><b>线 = 弦（上细下粗），数字 = 品，0 = 空弦。</b>记住这三句，任何六线谱都会看了。</Remember>,
+      ],
     },
     {
       id: "chords",
       title: "看懂和弦图",
       sub: "手指摆位说明书",
-      body: (
-        <div className="space-y-3">
-          <Para>
-            和弦 = 几个音同时响。左手按出固定的指法、右手一拨，就是一个和弦。
-            先学会<b>看懂和弦图</b>，再一个个攻克：
-          </Para>
-          <IBox><ChordChartWidget /></IBox>
-        </div>
-      ),
+      steps: [
+        <div key="s1" className="space-y-3">
+          <Para><b>和弦 = 几个音一起响。</b>和弦图告诉你手指怎么摆。</Para>
+          <Para>竖线 = 弦（<b>左边最粗是 6 弦</b>），横线 = 品。<b>圆点 = 按这里</b>，点里的数字 = 用第几根手指（1食指 2中指 3无名指 4小指）。</Para>
+        </div>,
+        <div key="s2" className="space-y-3">
+          <Para>图顶上：<b className="text-green-600">○</b> = 这根弦<b>空弦也要响</b>，<b className="text-zinc-400">×</b> = 这根弦<b>不弹</b>。</Para>
+          <Para>看懂了？下一步点图试听 5 个和弦 👇</Para>
+        </div>,
+        <IBox key="s3"><ChordChartWidget /></IBox>,
+      ],
     },
     {
       id: "picking",
       title: "右手拨弦：53231323",
       sub: "手指各管各的弦",
-      body: <IBox><PickPatternWidget /></IBox>,
+      steps: [
+        <div key="s1" className="space-y-3">
+          <Para>右手分工固定，不用背：<b>拇指管 6/5/4 弦</b>，<b>食指 3 弦、中指 2 弦、无名指 1 弦</b>。</Para>
+        </div>,
+        <div key="s2" className="space-y-3">
+          <Para>入门第一指法 <b>53231323</b>：数字就是弦号，依次拨 5→3→2→3→1→3→2→3 弦。</Para>
+        </div>,
+        <IBox key="s3"><PickPatternWidget /></IBox>,
+        <Remember key="s4"><b>慢就是快。</b>先保证每个音清晰、节奏匀，再加速。每天 10 分钟，一周手指就听话。</Remember>,
+      ],
     },
     {
       id: "fretting",
       title: "左手按弦 + 第一个和弦",
       sub: "Em，全世界最简单的和弦",
-      body: (
-        <div className="space-y-3">
-          <Para>
-            左手疼、按不响、有杂音——每个新手都经历过，不是你笨，是手指还没长茧。
-            按下面的三要领摆好 <b>Em</b>，这是你吉他生涯的第一个和弦：
-          </Para>
-          <IBox><FirstChordWidget /></IBox>
-        </div>
-      ),
+      steps: [
+        <div key="s1" className="space-y-3">
+          <Para><b>Em 只用两根手指</b>，是你的第一个和弦。</Para>
+          <Para>按不响、有杂音、手指疼？都正常——手指还没长茧，不是你笨。</Para>
+        </div>,
+        <IBox key="s2"><FirstChordWidget /></IBox>,
+        <Remember key="s3">练到<b>闭眼 3 秒摆好、每根弦都响</b>，再按同样方法攻 <b>Am → C → G → D</b>（从易到难）。</Remember>,
+      ],
     },
     {
       id: "song",
       title: "第一首歌《小星星》",
       sub: "三个和弦，弹唱入门",
-      body: (
-        <div className="space-y-3">
-          <Para>
-            恭喜走到这里！会了 G、D、Em，你已经能弹出完整的一首歌了。
-            别追求速度，<b>换和弦不断、节奏稳</b>就是胜利：
-          </Para>
-          <IBox><FirstSongWidget /></IBox>
-        </div>
-      ),
+      steps: [
+        <div key="s1" className="space-y-3">
+          <Para>会了 <b>G、D、Em</b>，就能弹《小星星》了！进行是 <b>G → D → Em → D</b> 循环。</Para>
+          <Para>每个和弦弹 <b>4 拍</b>（心里数 1-2-3-4 再换）。右手先<b>往下扫一次</b>就行，别贪多。</Para>
+        </div>,
+        <IBox key="s2"><FirstSongWidget /></IBox>,
+        <Remember key="s3"><b>换和弦不断、节奏稳</b>就是胜利。跟不上？只练左手换指法，右手先不弹。</Remember>,
+      ],
     },
   ];
 
@@ -1030,8 +1079,8 @@ export function ZeroGuitarCourse({ onGoTuner }: { onGoTuner?: () => void }) {
       <Card>
         <CardTitle>🎓 从零开始学吉他</CardTitle>
         <p className="mb-4 text-[13px] leading-6 text-fog">
-          {lessons.length} 节课，每节都能动手点、动手听。第 0 章连乐理都不用懂，纯玩游戏热身。
-          不懂乐理、没摸过琴也能学。进度自动保存在本机。
+          {lessons.length} 节课，<b>一步一屏</b>：每屏只讲一件事，点「下一步」往下走。
+          第 0 章纯玩游戏热身，不用懂乐理。进度自动保存在本机。
         </p>
         <div className="flex items-center gap-3">
           <div className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-100">
@@ -1088,7 +1137,9 @@ export function ZeroGuitarCourse({ onGoTuner }: { onGoTuner?: () => void }) {
                     </p>
                   </div>
                 </div>
-                <div className="mt-3">{l.body}</div>
+                <div className="mt-3">
+                  <Steps key={l.id} steps={l.steps} />
+                </div>
                 <button
                   onClick={() => toggleDone(l.id)}
                   className={cn(

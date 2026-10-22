@@ -7,7 +7,7 @@
  * 每节都是点一点就能玩的小游戏，零术语、零门槛。
  */
 import { useEffect, useRef, useState } from "react";
-import { Para, IBox, Remember, type Lesson } from "./learn-guitar";
+import { Para, IBox, Remember, Steps, type Lesson } from "./learn-guitar";
 import { ac, playTone, metroTick, noteName } from "@/lib/audio";
 import { pluckFret } from "@/lib/guitar-audio";
 import { cn } from "@/lib/utils";
@@ -502,61 +502,52 @@ export const zeroLessons: Lesson[] = [
     id: "z0-pitch",
     title: "声音有高低",
     sub: "耳朵的第一课：分出高和低",
-    body: (
-      <div className="space-y-3">
-        <Para>
-          学吉他之前，先跟耳朵交个朋友。音乐里最重要的两件事：<b>声音有高低</b>（音高）、
-          <b>声音有节奏</b>（拍子）。这节只玩第一件——
-        </Para>
-        <Para>高的声音像小鸟叫，低的声音像敲大鼓。下面玩个游戏，5 道题：</Para>
-        <IBox><PitchGame /></IBox>
-        <Remember>吉他上“高”和“低”的感觉，和你刚才玩的一模一样。耳朵灵了，后面全是顺的。</Remember>
-      </div>
-    ),
+    steps: [
+      <div key="s1" className="space-y-3">
+        <Para>学吉他前，先跟耳朵交个朋友。</Para>
+        <Para>音乐最重要的两件事：<b>声音有高低</b>（音高）、<b>声音有节奏</b>（拍子）。这节只玩第一件——高的像小鸟叫，低的像敲大鼓。</Para>
+      </div>,
+      <IBox key="s2"><PitchGame /></IBox>,
+      <Remember key="s3">吉他上“高”和“低”的感觉，和你刚才玩的一模一样。耳朵灵了，后面全是顺的。</Remember>,
+    ],
   },
   {
     id: "z0-rhythm",
     title: "跟着拍子点",
     sub: "音乐的心跳，叫拍子",
-    body: (
-      <div className="space-y-3">
-        <Para>
-          所有好听的音乐都有<b>心跳</b>——一下、一下，均匀地走，叫<b>拍子</b>。
-          弹吉他时右手就是跟着它动的。先别碰琴，用手指跟它交个朋友：
-        </Para>
-        <IBox><RhythmGame /></IBox>
-        <Remember>“完美”不用多，合上拍就是胜利。以后弹琴心里也这样数着拍子。</Remember>
-      </div>
-    ),
+    steps: [
+      <div key="s1" className="space-y-3">
+        <Para>所有好听的音乐都有<b>心跳</b>——一下、一下，均匀地走，叫<b>拍子</b>。</Para>
+        <Para>弹吉他时右手就是跟着它动的。先别碰琴，用手指跟它交个朋友 👇</Para>
+      </div>,
+      <IBox key="s2"><RhythmGame /></IBox>,
+      <Remember key="s3">合上拍就是胜利。以后弹琴，心里也这样数着拍子。</Remember>,
+    ],
   },
   {
     id: "z0-names",
     title: "音有名字",
     sub: "do re mi，可不是儿歌专利",
-    body: (
-      <div className="space-y-3">
-        <Para>
-          每个音高都有名字，最常用的叫<b>唱名</b>：<b>do re mi fa sol la si</b>。
-          先点一点记住它们，再玩听音游戏：
-        </Para>
-        <IBox><NoteNameGame /></IBox>
-        <Remember>偷偷告诉你：吉他 1 弦空弦拨出来的，就是 <b>mi</b>。你已经认识第一个吉他音了。</Remember>
-      </div>
-    ),
+    steps: [
+      <div key="s1" className="space-y-3">
+        <Para>每个音高都有名字，最常用的叫<b>唱名</b>：<b>do re mi fa sol la si</b>。</Para>
+        <Para>点一点记住它们，再玩听音游戏 👇</Para>
+      </div>,
+      <IBox key="s2"><NoteNameGame /></IBox>,
+      <Remember key="s3">偷偷告诉你：吉他 1 弦空弦拨出来就是 <b>mi</b>。你已经认识第一个吉他音了。</Remember>,
+    ],
   },
   {
     id: "z0-fret",
     title: "品格的魔法",
     sub: "吉他最核心的秘密，30 秒亲手发现",
-    body: (
-      <div className="space-y-3">
-        <Para>
-          为什么一根弦能弹出那么多不同的音？秘密就在<b>品格</b>上。
-          手指按的位置不同，弦振动的长度就不同，声音的高低就变了。亲手试试：
-        </Para>
-        <IBox><FretMagic /></IBox>
-        <Remember>每往下一品，音高半音；到 12 品正好高八度。整把吉他，就是 6 根弦 × 这个魔法。</Remember>
-      </div>
-    ),
+    steps: [
+      <div key="s1" className="space-y-3">
+        <Para>为什么<b>一根弦</b>能弹出那么多不同的音？</Para>
+        <Para>秘密在<b>品格</b>上：手指按的位置不同，弦振动的长度就不同，声音高低就变了。亲手点一点 👇</Para>
+      </div>,
+      <IBox key="s2"><FretMagic /></IBox>,
+      <Remember key="s3">每往下一品，音高半音；到 12 品正好高八度。<b>整把吉他 = 6 根弦 × 这个魔法。</b></Remember>,
+    ],
   },
 ];
