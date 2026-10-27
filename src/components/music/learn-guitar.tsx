@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { noteName, cnName } from "@/lib/audio";
 import { zeroLessons } from "./learn-zero";
 import { moreLessons } from "./learn-guitar-2";
+import { songLessons } from "./learn-songs";
 import {
   STRING_BASE,
   STRING_LABEL,
@@ -1071,6 +1072,7 @@ export function ZeroGuitarCourse({ onGoTuner, onGoPiano }: { onGoTuner?: () => v
       ],
     },
     ...moreLessons,
+    ...songLessons,
   ];
 
   const doneCount = lessons.filter((l) => done.includes(l.id)).length;

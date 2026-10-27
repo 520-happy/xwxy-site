@@ -9,6 +9,7 @@ import {
   Smartphone,
   Sprout,
   Guitar,
+  Globe,
   FolderSearch,
   ArrowUpRight,
   Menu,
@@ -30,6 +31,7 @@ const NAV: NavItem[] = [
   { href: "/phone", label: "手机比价", Icon: Smartphone },
   { href: "/game", label: "后院保卫战", Icon: Sprout },
   { href: "/music", label: "音乐教室", Icon: Guitar },
+  { href: "/proxy", label: "家宽学堂", Icon: Globe },
   { href: "https://pansou.de", label: "盘搜", Icon: FolderSearch, external: true },
 ];
 
