@@ -11,6 +11,7 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { noteName, cnName } from "@/lib/audio";
 import { zeroLessons } from "./learn-zero";
+import { moreLessons } from "./learn-guitar-2";
 import {
   STRING_BASE,
   STRING_LABEL,
@@ -462,7 +463,7 @@ function TabLines({ cols, title }: { cols: { si: number; fret: number }[]; title
 
 /* ================= 第6课部件：和弦图 ================= */
 
-interface ChordDef {
+export interface ChordDef {
   name: string;
   /** 6→1 弦，null = 不弹 */
   frets: (number | null)[];
@@ -471,7 +472,7 @@ interface ChordDef {
   tip: string;
 }
 
-const LEARN_CHORDS: ChordDef[] = [
+export const LEARN_CHORDS: ChordDef[] = [
   {
     name: "Em",
     frets: [null, 2, 2, 0, 0, 0],
@@ -506,7 +507,7 @@ const LEARN_CHORDS: ChordDef[] = [
 
 const FINGER_CN = ["", "食指", "中指", "无名指", "小指"];
 
-function ChordDiagram({ chord, big }: { chord: ChordDef; big?: boolean }) {
+export function ChordDiagram({ chord, big }: { chord: ChordDef; big?: boolean }) {
   const W = big ? 220 : 160;
   const H = big ? 250 : 190;
   const padL = 26;
@@ -917,7 +918,7 @@ export interface Lesson {
 
 const DONE_KEY = "zero-guitar-done";
 
-export function ZeroGuitarCourse({ onGoTuner }: { onGoTuner?: () => void }) {
+export function ZeroGuitarCourse({ onGoTuner, onGoPiano }: { onGoTuner?: () => void; onGoPiano?: () => void }) {
   const [done, setDone] = useState<string[]>([]);
 
   useEffect(() => {
@@ -1069,6 +1070,7 @@ export function ZeroGuitarCourse({ onGoTuner }: { onGoTuner?: () => void }) {
         <Remember key="s3"><b>换和弦不断、节奏稳</b>就是胜利。跟不上？只练左手换指法，右手先不弹。</Remember>,
       ],
     },
+    ...moreLessons,
   ];
 
   const doneCount = lessons.filter((l) => done.includes(l.id)).length;
@@ -1177,6 +1179,11 @@ export function ZeroGuitarCourse({ onGoTuner }: { onGoTuner?: () => void }) {
           <Para>
             <b>每天 15 分钟：</b>5 分钟音阶 → 5 分钟《小星星》→ 5 分钟自由弹。两周就有明显变化。
           </Para>
+          {onGoPiano && (
+            <button onClick={onGoPiano} className="rounded-full bg-zinc-900 px-6 py-3 text-sm font-medium text-white shadow-sm transition-transform active:scale-95">
+              去钢琴页弹一弹（带跟弹模式） →
+            </button>
+          )}
         </div>
       </Card>
     </div>

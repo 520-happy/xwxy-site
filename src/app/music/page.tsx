@@ -79,6 +79,10 @@ export default function MusicPage() {
                 setTab("tuner");
                 window.scrollTo(0, 0);
               }}
+              onGoPiano={() => {
+                setTab("piano");
+                window.scrollTo(0, 0);
+              }}
             />
           )}
           {tab === "songs" && <SongGridPanel onFollow={followSong} />}
