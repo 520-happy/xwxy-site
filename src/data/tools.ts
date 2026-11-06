@@ -57,7 +57,7 @@ export const TOOLS: Tool[] = [
   {
     id: "music",
     name: "音乐教室",
-    description: "吉他调音器、变调夹、钢琴、新手教程与网红谱",
+    description: "录音钢琴与原声吉他，循序跟练，慢慢弹出第一首歌",
     category: "学习成长",
     href: "/music",
     Icon: Guitar,

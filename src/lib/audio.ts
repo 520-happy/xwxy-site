@@ -83,11 +83,11 @@ export function pianoPlay(midi: number, tone: string, vol01: number): { label: s
   return { label: `${nn.name}${nn.oct} · ${f.toFixed(1)}Hz` };
 }
 
-export function metroTick(accent: boolean) {
+export function metroTick(accent: boolean, when?: number) {
   const c = ac();
   const o = c.createOscillator();
   const g = c.createGain();
-  const t = c.currentTime;
+  const t = when ?? c.currentTime;
   o.type = "square";
   o.frequency.value = accent ? 1200 : 800;
   g.gain.setValueAtTime(accent ? 0.25 : 0.12, t);

@@ -7,6 +7,8 @@
  * 弦序约定：索引 0 = 6弦（最粗） … 索引 5 = 1弦（最细）
  */
 import { ac } from "@/lib/audio";
+import { instrumentReady, loadInstrument, sampledVoice, type InstrumentVoice } from "./instrument-samples";
+const recordedVoices = new Map<number, InstrumentVoice>();
 
 /** 6→1 弦空弦频率（标准调弦 E A D G B E） */
 export const STRING_BASE = [82.41, 110.0, 146.83, 196.0, 246.94, 329.63];
@@ -109,6 +111,11 @@ function ksBuffer(c: AudioContext, freq: number, vel: number): AudioBuffer {
  * 同弦重拨自动掐断前一个音（8ms 淡出）；制音后拨弦自动恢复音量。
  */
 export function pluck(si: number, freq: number, vel = 0.9, when?: number): void {
+  if (instrumentReady("guitar-acoustic")) {
+    recordedVoices.get(si)?.release(0.035);
+    recordedVoices.set(si, sampledVoice("guitar-acoustic", 69 + 12 * Math.log2(freq / 440), vel, when));
+    return;
+  }
   const c = ac();
   const m = getMaster(c);
   const t = when ?? c.currentTime;
@@ -176,7 +183,8 @@ export function strumChord(
   frets: (number | null)[],
   fromLow = true,
   baseDelay = 0.02,
-  stagger = 0.024
+  stagger = 0.024,
+  velocity = 1
 ): void {
   const c = ac();
   const t0 = c.currentTime + baseDelay;
@@ -185,11 +193,10 @@ export function strumChord(
     const f = frets[si];
     const t = t0 + k * stagger;
     if (f === null || f === undefined) {
-      chuck(t);
       return;
     }
     const vel = 0.72 + 0.28 * Math.sin((k / 5) * Math.PI);
-    pluck(si, fretFreq(STRING_BASE[si], f), vel, t);
+    pluck(si, fretFreq(STRING_BASE[si], f), vel * velocity, t);
   });
 }
 
@@ -219,6 +226,9 @@ export function chuck(when?: number): void {
 
 /** 制音：手掌闷住所有弦（35ms 拉到 0），下次拨弦自动松开 */
 export function muteAll(): void {
+  recordedVoices.forEach(v => v.release(0.035));
+  recordedVoices.clear();
+  if (!master) return;
   const c = ac();
   const t = c.currentTime;
   voices.forEach((v) => {
@@ -233,6 +243,7 @@ export function muteAll(): void {
 export function warmup(): void {
   try {
     ac();
+    void loadInstrument("guitar-acoustic").catch(() => {});
   } catch {
     /* 忽略 */
   }

@@ -392,7 +392,7 @@ function ChordStep({ chord, tip, onNext }: { chord: string; tip: string; onNext:
         <div>
           <div className="text-4xl font-bold">{chord}</div>
           <div className="mt-2 text-[13px] leading-7 text-fog">
-            × = 不弹　○ = 空弦
+            × = 不弹　○ = 空弦　圆点数字 = 手指编号
             <br />
             指尖按弦，逐根拨响检查
           </div>

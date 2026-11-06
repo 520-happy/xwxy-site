@@ -1,574 +1,529 @@
 "use client";
-
-/**
- * PianoPanel — 更好用的在线钢琴
- *
- * 3 个八度（C3～B5），按住琴键持续发声、松手收声（像真钢琴），
- * 带延音踏板、唱名/音名标注切换、演示 + 跟弹过关两种练琴模式。
- */
-import { useEffect, useRef, useState } from "react";
-import { Card, CardTitle } from "@/components/ui/card";
-import { ac, midiFreq, noteName, cnName } from "@/lib/audio";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Play,
+  Square,
+  RotateCcw,
+  Volume2,
+  Check,
+  Headphones,
+  Keyboard,
+} from "lucide-react";
+import {
+  loadInstrument,
+  sampledVoice,
+  type InstrumentVoice,
+} from "@/lib/instrument-samples";
+import {
+  PIANO_EXERCISES,
+  SOLFEGE,
+  midiLabel,
+  savePractice,
+} from "@/data/piano-exercises";
 import { cn } from "@/lib/utils";
 
-const NOTE_LETTERS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-
-interface PKey {
-  midi: number;
-  letter: string;
-  oct: number;
-  black: boolean;
-}
-
-const KEYS: PKey[] = (() => {
-  const out: PKey[] = [];
-  for (let m = 48; m <= 83; m++) {
-    const letter = NOTE_LETTERS[m % 12];
-    out.push({ midi: m, letter, oct: Math.floor(m / 12) - 1, black: letter.includes("#") });
-  }
-  return out;
-})();
-
-const SOLFEGE: Record<string, string> = {
-  C: "do",
-  D: "re",
-  E: "mi",
-  F: "fa",
-  G: "sol",
-  A: "la",
-  B: "si",
+const KEYBOARD: Record<string, number> = {
+  a: 0,
+  w: 1,
+  s: 2,
+  e: 3,
+  d: 4,
+  f: 5,
+  t: 6,
+  g: 7,
+  y: 8,
+  h: 9,
+  u: 10,
+  j: 11,
+  k: 12,
 };
-
-const SONGS = [
-  {
-    id: "twinkle",
-    title: "小星星",
-    notes: [
-      60, 60, 67, 67, 69, 69, 67, 65, 65, 64, 64, 62, 62, 60, 67, 67, 65, 65, 64, 64, 62,
-      67, 67, 65, 65, 64, 64, 62, 60, 60, 67, 67, 69, 69, 67, 65, 65, 64, 64, 62, 62, 60,
-    ],
-  },
-  {
-    id: "ode",
-    title: "欢乐颂",
-    notes: [64, 64, 65, 67, 67, 65, 64, 62, 60, 60, 62, 64, 64, 62, 62],
-  },
-];
-
 type Mode = "free" | "demo" | "follow";
-type Tone = "piano" | "organ" | "synth";
-type LabelMode = "solfege" | "name" | "none";
-
-interface Voice {
-  oscs: OscillatorNode[];
-  gain: GainNode;
-}
-
 export function PianoPanel() {
-  const [tone, setTone] = useState<Tone>("piano");
-  const [vol, setVol] = useState(70);
-  const [labelMode, setLabelMode] = useState<LabelMode>("solfege");
-  const [pedal, setPedal] = useState(false);
+  const [exerciseId, setExerciseId] = useState("five");
+  const exercise = PIANO_EXERCISES.find((e) => e.id === exerciseId)!;
+  const [bpm, setBpm] = useState(70);
+  const [volume, setVolume] = useState(65);
   const [mode, setMode] = useState<Mode>("free");
-  const [songId, setSongId] = useState("twinkle");
-  const [active, setActive] = useState<Set<number>>(new Set());
-  const [lastLabel, setLastLabel] = useState("—");
-  const [demoIdx, setDemoIdx] = useState(-1);
-  const [followIdx, setFollowIdx] = useState(0);
-  const [correct, setCorrect] = useState(0);
+  const [index, setIndex] = useState(0);
   const [mistakes, setMistakes] = useState(0);
-  const [followDone, setFollowDone] = useState(false);
-  const [wrongMidi, setWrongMidi] = useState<number | null>(null);
-
-  const masterRef = useRef<GainNode | null>(null);
-  const voicesRef = useRef(new Map<number, Voice>());
-  const sustainedRef = useRef(new Set<number>());
-  const timersRef = useRef<number[]>([]);
-
-  const toneRef = useRef(tone);
-  const volRef = useRef(vol);
-  const pedalRef = useRef(pedal);
-  const modeRef = useRef(mode);
-  const songRef = useRef(songId);
-  const followRef = useRef(followIdx);
-  toneRef.current = tone;
-  volRef.current = vol;
-  pedalRef.current = pedal;
-  modeRef.current = mode;
-  songRef.current = songId;
-  followRef.current = followIdx;
-
-  const song = SONGS.find((s) => s.id === songId) ?? SONGS[0];
-
-  const getMaster = (): GainNode => {
-    const c = ac();
-    if (!masterRef.current) {
-      const g = c.createGain();
-      g.gain.value = (volRef.current / 100) * 0.9;
-      g.connect(c.destination);
-      masterRef.current = g;
-    }
-    return masterRef.current;
-  };
-
-  const clearTimers = () => {
-    timersRef.current.forEach((t) => window.clearTimeout(t));
-    timersRef.current = [];
-  };
-
-  const stopVoice = (midi: number, fast = false) => {
-    const v = voicesRef.current.get(midi);
-    if (!v) return;
-    voicesRef.current.delete(midi);
-    sustainedRef.current.delete(midi);
+  const [done, setDone] = useState(false);
+  const [feedback, setFeedback] = useState("先听一遍，再跟着亮起的琴键弹奏。");
+  const [active, setActive] = useState<Set<number>>(new Set());
+  const [pedal, setPedal] = useState(false);
+  const [wide, setWide] = useState(false);
+  const [labels, setLabels] = useState(true);
+  const [sampleStatus, setSampleStatus] = useState("点击启用录音音色");
+  const [loading, setLoading] = useState(false);
+  const [lastNote, setLastNote] = useState("中央 C · C4");
+  const voices = useRef(new Map<number, InstrumentVoice>());
+  const held = useRef(new Map<number, Set<string>>());
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const pedalRef = useRef(false);
+  const session = useRef({
+    mode: "free" as Mode,
+    index: 0,
+    mistakes: 0,
+    done: false,
+  });
+  const mounted = useRef(true);
+  const base = wide || exerciseId === "left" ? 48 : 60;
+  const end = wide ? 84 : base + 12;
+  const keys = Array.from({ length: end - base + 1 }, (_, i) => base + i);
+  const isBlack = (m: number) => [1, 3, 6, 8, 10].includes(m % 12);
+  const whiteKeys = keys.filter((m) => !isBlack(m));
+  const target = mode === "follow" && !done ? exercise.notes[index] : null;
+  const enableSamples = useCallback(async () => {
+    setLoading(true);
+    setSampleStatus("正在准备钢琴音色…");
     try {
-      const c = ac();
-      const t = c.currentTime;
-      v.gain.gain.cancelScheduledValues(t);
-      v.gain.gain.setValueAtTime(Math.max(v.gain.gain.value, 0.0001), t);
-      v.gain.gain.linearRampToValueAtTime(0.0001, t + (fast ? 0.05 : 0.15));
-      v.oscs.forEach((o) => {
-        try {
-          o.stop(t + 0.25);
-        } catch {
-          /* 已停 */
+      const ready = await loadInstrument("piano");
+      if (mounted.current)
+        setSampleStatus(
+          ready ? "钢琴录音音色已就绪" : "部分音色未加载，可点此重试",
+        );
+    } catch {
+      if (mounted.current) setSampleStatus("暂用合成音，点此重试");
+    } finally {
+      if (mounted.current) setLoading(false);
+    }
+  }, []);
+  const silence = useCallback(() => {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+    voices.current.forEach((v) => v.release(0.04));
+    voices.current.clear();
+    held.current.clear();
+    setActive(new Set());
+  }, []);
+  const stop = useCallback(() => {
+    silence();
+    session.current.mode = "free";
+    setMode("free");
+  }, [silence]);
+  const setSustain = useCallback((value: boolean) => {
+    pedalRef.current = value;
+    setPedal(value);
+    if (!value)
+      voices.current.forEach((v, m) => {
+        if (!held.current.has(m)) {
+          v.release();
+          voices.current.delete(m);
         }
       });
-    } catch {
-      /* 忽略 */
-    }
-    setActive((prev) => {
-      const n = new Set(prev);
-      n.delete(midi);
-      return n;
-    });
-  };
-
-  const stopAll = () => {
-    [...voicesRef.current.keys()].forEach((m) => stopVoice(m, true));
-    sustainedRef.current.clear();
-  };
-
-  const noteOn = (midi: number) => {
-    stopVoice(midi, true);
-    const c = ac();
-    const master = getMaster();
-    const f = midiFreq(midi);
-    const t = c.currentTime;
-    const vol = 0.5;
-    const tone = toneRef.current;
-    const partials: [number, number, OscillatorType][] =
-      tone === "piano"
-        ? [[1, 1, "sine"], [2, 0.35, "sine"], [3, 0.18, "sine"], [4, 0.1, "sine"]]
-        : tone === "organ"
-          ? [[1, 0.9, "sine"], [2, 0.5, "sine"], [3, 0.4, "sine"], [4, 0.25, "sine"]]
-          : [[1, 0.7, "sawtooth"], [2, 0.4, "sine"], [3, 0.5, "sine"]];
-    const gain = c.createGain();
-    gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.exponentialRampToValueAtTime(Math.max(vol, 0.001), t + 0.012);
-    if (tone === "piano") {
-      // 钢琴音按住也会自然衰减
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.8);
-    }
-    gain.connect(master);
-    const oscs = partials.map(([mult, amp, type]) => {
-      const o = c.createOscillator();
-      o.type = type;
-      o.frequency.value = f * mult;
-      const og = c.createGain();
-      og.gain.value = amp;
-      o.connect(og);
-      og.connect(gain);
-      o.start(t);
-      return o;
-    });
-    voicesRef.current.set(midi, { oscs, gain });
-    const nn = noteName(f);
-    setLastLabel(`${nn.name}${nn.oct} · ${SOLFEGE[nn.name.replace("#", "")] ?? ""} · ${f.toFixed(1)}Hz`);
-    setActive((prev) => new Set(prev).add(midi));
-  };
-
-  const noteOff = (midi: number) => {
-    if (!voicesRef.current.has(midi)) return;
-    if (pedalRef.current) {
-      sustainedRef.current.add(midi);
-      return;
-    }
-    stopVoice(midi);
-  };
-
-  /** 按键：自由弹直接发声；跟弹模式还要判对错 */
-  const press = (midi: number) => {
-    noteOn(midi);
-    if (modeRef.current === "follow" && !followDone) {
-      const notes = (SONGS.find((s) => s.id === songRef.current) ?? SONGS[0]).notes;
-      const idx = followRef.current;
-      if (midi === notes[idx]) {
-        setCorrect((n) => n + 1);
-        if (idx + 1 >= notes.length) {
-          setFollowDone(true);
-        } else {
-          setFollowIdx(idx + 1);
-        }
-      } else {
-        setMistakes((n) => n + 1);
-        setWrongMidi(midi);
-        window.setTimeout(() => setWrongMidi((w) => (w === midi ? null : w)), 350);
-      }
-    }
-  };
-
-  const release = (midi: number) => noteOff(midi);
-
-  const stopDemo = () => {
-    clearTimers();
-    setDemoIdx(-1);
-  };
-
-  const startDemo = () => {
-    stopAll();
-    stopDemo();
-    setMode("demo");
-    const notes = song.notes;
-    let i = 0;
-    const step = () => {
-      if (i >= notes.length) {
-        stopDemo();
+  }, []);
+  const noteOn = useCallback(
+    (midi: number, owner: string, velocity = 1) => {
+      const owners = held.current.get(midi);
+      if (owners?.has(owner)) return;
+      if (owners?.size) {
+        owners.add(owner);
         return;
       }
-      const m = notes[i];
-      setDemoIdx(i);
-      noteOn(m);
-      const dur = song.id === "ode" && i === notes.length - 1 ? 900 : 480;
-      timersRef.current.push(window.setTimeout(() => noteOff(m), dur));
-      i += 1;
-      timersRef.current.push(window.setTimeout(step, 520));
-    };
-    step();
-  };
-
-  const startFollow = () => {
-    stopAll();
-    stopDemo();
-    setMode("follow");
-    setFollowIdx(0);
-    setCorrect(0);
-    setMistakes(0);
-    setFollowDone(false);
-  };
-
-  const setFree = () => {
-    stopAll();
-    stopDemo();
-    setMode("free");
-  };
-
-  const togglePedal = () => {
-    const next = !pedal;
-    setPedal(next);
-    if (!next) {
-      // 松开踏板：把踏板期间按住的音全部收住
-      [...sustainedRef.current].forEach((m) => stopVoice(m));
-      sustainedRef.current.clear();
-    }
-  };
-
-  useEffect(
-    () => () => {
-      clearTimers();
-      stopAll();
+      held.current.set(midi, new Set([owner]));
+      voices.current.get(midi)?.release(0.025);
+      voices.current.set(
+        midi,
+        sampledVoice("piano", midi, (volume / 100) * velocity),
+      );
+      setActive((prev) => new Set(prev).add(midi));
+      setLastNote(`${midiLabel(midi)} · ${SOLFEGE[midi % 12]}`);
     },
-    [] // eslint-disable-line react-hooks/exhaustive-deps
+    [volume],
   );
-
+  const noteOff = useCallback((midi: number, owner: string) => {
+    const owners = held.current.get(midi);
+    if (!owners) return;
+    owners.delete(owner);
+    if (owners.size) return;
+    held.current.delete(midi);
+    setActive((prev) => {
+      const next = new Set(prev);
+      next.delete(midi);
+      return next;
+    });
+    if (!pedalRef.current) {
+      voices.current.get(midi)?.release();
+      voices.current.delete(midi);
+    }
+  }, []);
+  const press = useCallback(
+    (midi: number, owner: string, velocity = 1) => {
+      if (session.current.mode === "demo") stop();
+      if (held.current.get(midi)?.has(owner)) return;
+      noteOn(midi, owner, velocity);
+      const s = session.current;
+      if (s.mode !== "follow" || s.done) return;
+      if (exercise.notes[s.index].midi !== midi) {
+        s.mistakes += 1;
+        setMistakes(s.mistakes);
+        setFeedback(
+          `再试试 ${midiLabel(exercise.notes[s.index].midi)}，慢一点也没关系。`,
+        );
+        return;
+      }
+      s.index += 1;
+      if (s.index === exercise.notes.length) {
+        s.done = true;
+        setDone(true);
+        const saved = savePractice(exercise.id, s.mistakes);
+        setFeedback(
+          `这一句弹完了！${saved ? "本机进度已保存。" : "浏览器未允许保存进度。"}接下来试着保持每个音的长短。`,
+        );
+      } else {
+        setIndex(s.index);
+        setFeedback("对了，继续下一个音。");
+      }
+    },
+    [exercise, noteOn, stop],
+  );
+  const startFollow = () => {
+    silence();
+    setSustain(false);
+    session.current = { mode: "follow", index: 0, mistakes: 0, done: false };
+    setMode("follow");
+    setIndex(0);
+    setMistakes(0);
+    setDone(false);
+    setFeedback("跟着绿色琴键弹奏；这里练习音高顺序，不评判实琴手型和节奏。");
+  };
+  const playDemo = () => {
+    silence();
+    setSustain(false);
+    session.current.mode = "demo";
+    setMode("demo");
+    setDone(false);
+    setIndex(0);
+    setFeedback("听每个音的长短。演示结束后，点击「跟着弹」。");
+    let elapsed = 0;
+    exercise.notes.forEach((note, i) => {
+      const duration = (note.beats * 60000) / bpm;
+      timers.current.push(
+        setTimeout(() => {
+          setIndex(i);
+          noteOn(note.midi, "demo");
+        }, elapsed),
+      );
+      timers.current.push(
+        setTimeout(() => noteOff(note.midi, "demo"), elapsed + duration * 0.85),
+      );
+      elapsed += duration;
+    });
+    timers.current.push(
+      setTimeout(() => {
+        stop();
+        setFeedback("听完了。准备好就来跟着弹吧。");
+      }, elapsed),
+    );
+  };
   useEffect(() => {
-    if (masterRef.current) masterRef.current.gain.value = (vol / 100) * 0.9;
-  }, [vol]);
-
-  // 电脑键盘：A 行对应 C4 起的琴键
-  useEffect(() => {
-    const keyMap: Record<string, number> = {
-      a: 60, w: 61, s: 62, e: 63, d: 64, f: 65, t: 66, g: 67, y: 68, h: 69, u: 70, j: 71,
-      k: 72, o: 73, l: 74, p: 75, ";": 76, "'": 77,
-    };
+    const keyboardOwners = new Map<string, number>();
     const down = (e: KeyboardEvent) => {
-      if (e.repeat) return;
-      const ae = document.activeElement;
-      if (ae && /INPUT|TEXTAREA/.test(ae.tagName)) return;
-      const midi = keyMap[e.key.toLowerCase()];
-      if (midi !== undefined) press(midi);
+      if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+      const el = e.target as HTMLElement;
+      if (el.closest("input,textarea,select,[contenteditable=true]")) return;
+      if (e.code === "Space" && el.tagName !== "BUTTON") {
+        e.preventDefault();
+        setSustain(true);
+        return;
+      }
+      const offset = KEYBOARD[e.key.toLowerCase()];
+      if (offset === undefined) return;
+      e.preventDefault();
+      const midi = (exerciseId === "left" ? 48 : 60) + offset;
+      keyboardOwners.set(e.code, midi);
+      press(midi, `key-${e.code}`);
     };
     const up = (e: KeyboardEvent) => {
-      const midi = keyMap[e.key.toLowerCase()];
-      if (midi !== undefined) release(midi);
+      if (e.code === "Space") setSustain(false);
+      const midi = keyboardOwners.get(e.code);
+      if (midi !== undefined) {
+        noteOff(midi, `key-${e.code}`);
+        keyboardOwners.delete(e.code);
+      }
     };
-    document.addEventListener("keydown", down);
-    document.addEventListener("keyup", up);
+    const blur = () => {
+      keyboardOwners.clear();
+      stop();
+      setSustain(false);
+    };
+    const hidden = () => {
+      if (document.hidden) blur();
+    };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    window.addEventListener("blur", blur);
+    document.addEventListener("visibilitychange", hidden);
     return () => {
-      document.removeEventListener("keydown", down);
-      document.removeEventListener("keyup", up);
+      keyboardOwners.forEach((m, code) => noteOff(m, `key-${code}`));
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+      window.removeEventListener("blur", blur);
+      document.removeEventListener("visibilitychange", hidden);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [followDone]);
-
-  const whites = KEYS.filter((k) => !k.black);
-  const W = 44;
-  const gap = 2;
-  const whiteX = new Map<number, number>();
-  whites.forEach((k, i) => whiteX.set(k.midi, i * (W + gap)));
-  const targetMidi = mode === "follow" && !followDone ? song.notes[followIdx] : null;
-
-  const keyLabel = (k: PKey): string => {
-    if (labelMode === "none") return "";
-    if (labelMode === "name") return `${k.letter}${k.oct}`;
-    return k.black ? "" : (SOLFEGE[k.letter] ?? "");
-  };
-
-  return (
-    <div>
-      <Card>
-        <CardTitle>
-          在线钢琴{" "}
-          <span className="ml-2 rounded-lg bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent">
-            三个八度 · 按住发声
-          </span>
-        </CardTitle>
-        <p className="mt-2 text-[13px] leading-7 text-fog">
-          鼠标、手指或电脑键盘都能弹（A～; 对应 C4 起的琴键）。按住琴键持续发声，松手收声；开延音踏板后，松手声音也会延续。
-        </p>
-
-        {/* 模式切换 */}
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <button
-            onClick={setFree}
-            className={cn("btn-pill px-4 py-2 text-sm", mode === "free" && "active")}
-          >
-            🎹 自由弹
-          </button>
-          <button
-            onClick={startDemo}
-            className={cn("btn-pill px-4 py-2 text-sm", mode === "demo" && "active")}
-          >
-            ▶ 演示
-          </button>
-          <button
-            onClick={startFollow}
-            className={cn("btn-pill px-4 py-2 text-sm", mode === "follow" && "active")}
-          >
-            🎯 跟弹过关
-          </button>
-          {mode !== "free" && (
-            <select
-              value={songId}
-              onChange={(e) => {
-                setSongId(e.target.value);
-                stopDemo();
-                if (mode === "follow") {
-                  setFollowIdx(0);
-                  setCorrect(0);
-                  setMistakes(0);
-                  setFollowDone(false);
-                }
-              }}
-              className="rounded-full border border-line bg-white px-3 py-2 text-sm"
-            >
-              {SONGS.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.title}
-                </option>
-              ))}
-            </select>
-          )}
-          {(mode === "demo" || mode === "follow") && mode !== "demo" && (
-            <button
-              onClick={startFollow}
-              className="text-sm text-emerald-700 underline"
-            >
-              重新开始
-            </button>
-          )}
-          {mode === "demo" && (
-            <button onClick={stopDemo} className="text-sm text-emerald-700 underline">
-              停止演示
-            </button>
-          )}
-        </div>
-
-        {/* 跟弹进度 */}
-        {mode === "follow" && (
-          <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
-            {followDone ? (
-              <p className="text-center text-[15px] font-medium text-emerald-800">
-                🎉 弹完啦！弹对 {correct} 个音，按错 {mistakes} 次
-                {mistakes === 0 ? "，一次没错，厉害！" : "，再来一次冲击零失误！"}
-              </p>
-            ) : (
-              <>
-                <p className="mb-2 text-center text-sm text-fog">
-                  请弹 <b className="text-emerald-700">绿圈里的键</b>：弹对自动前进，弹错会红一下
-                  （已弹对 {correct} 个，弹错 {mistakes} 次）
-                </p>
-                <div className="flex flex-wrap justify-center gap-1">
-                  {song.notes.map((m, i) => {
-                    const k = KEYS.find((x) => x.midi === m)!;
-                    return (
-                      <span
-                        key={i}
-                        className={cn(
-                          "rounded-md px-1.5 py-1 text-[11px] font-bold",
-                          i < followIdx
-                            ? "bg-emerald-100 text-emerald-700"
-                            : i === followIdx
-                              ? "scale-110 bg-emerald-500 text-white shadow"
-                              : "bg-zinc-100 text-zinc-400"
-                        )}
-                      >
-                        {SOLFEGE[k.letter]}
-                      </span>
-                    );
-                  })}
-                </div>
-              </>
-            )}
-          </div>
+  }, [press, noteOff, setSustain, stop, exerciseId]);
+  useEffect(() => {
+    mounted.current = true;
+    const currentVoices = voices.current;
+    return () => {
+      mounted.current = false;
+      timers.current.forEach(clearTimeout);
+      currentVoices.forEach((v) => v.release(0.04));
+      currentVoices.clear();
+    };
+  }, []);
+  const renderKey = (midi: number) => {
+    const black = isBlack(midi);
+    const whiteIndex = whiteKeys.indexOf(midi);
+    const before = whiteKeys.filter((m) => m < midi).length;
+    const w = 100 / whiteKeys.length;
+    const hint = Object.entries(KEYBOARD).find(
+      ([, offset]) => offset + (exerciseId === "left" ? 48 : 60) === midi,
+    )?.[0];
+    return (
+      <button
+        key={midi}
+        type="button"
+        data-midi={midi}
+        className={cn(
+          "piano-key",
+          black ? "piano-key-black" : "piano-key-white",
+          active.has(midi) && "is-playing",
+          target?.midi === midi && "is-target",
         )}
-
-        {/* 演示进度 */}
-        {mode === "demo" && demoIdx >= 0 && (
-          <div className="mt-4">
-            <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
-              <div
-                className="h-full rounded-full bg-emerald-500 transition-all duration-300"
-                style={{ width: `${((demoIdx + 1) / song.notes.length) * 100}%` }}
-              />
-            </div>
-            <p className="mt-1.5 text-center text-xs text-fog">
-              正在演示《{song.title}》：{demoIdx + 1} / {song.notes.length}
+        style={{
+          left: `${black ? before * w - w * 0.31 : whiteIndex * w}%`,
+          width: `${black ? w * 0.62 : w}%`,
+        }}
+        aria-label={`琴键 ${midiLabel(midi)}`}
+        aria-pressed={active.has(midi)}
+        onPointerDown={(e) => {
+          e.preventDefault();
+          e.currentTarget.setPointerCapture(e.pointerId);
+          press(
+            midi,
+            `pointer-${e.pointerId}`,
+            e.pointerType === "pen" ? Math.max(0.25, e.pressure) : 1,
+          );
+        }}
+        onPointerUp={(e) => noteOff(midi, `pointer-${e.pointerId}`)}
+        onPointerCancel={(e) => noteOff(midi, `pointer-${e.pointerId}`)}
+        onLostPointerCapture={(e) => noteOff(midi, `pointer-${e.pointerId}`)}
+        onClick={(e) => {
+          if (e.detail === 0) {
+            press(midi, "accessible");
+            timers.current.push(
+              setTimeout(() => noteOff(midi, "accessible"), 350),
+            );
+          }
+        }}
+      >
+        {target?.midi === midi && (
+          <span className="key-finger">{target.finger ?? "♪"}</span>
+        )}
+        <span className="key-label">
+          {labels && (
+            <>
+              <b>{midiLabel(midi)}</b>
+              {!black && <small>{SOLFEGE[midi % 12]}</small>}
+            </>
+          )}
+          <kbd>{hint?.toUpperCase() ?? ""}</kbd>
+        </span>
+      </button>
+    );
+  };
+  return (
+    <div className="studio-stack">
+      <section className="lesson-banner">
+        <div>
+          <span className="eyebrow">钢琴 · 从一个音开始</span>
+          <h2>让指尖，慢慢找到旋律。</h2>
+          <p>先用右手五个手指，弹出属于你的第一句音乐。</p>
+        </div>
+        <div
+          className="finger-guide"
+          aria-label="手指编号：拇指1、食指2、中指3、无名指4、小指5"
+        >
+          {["拇指", "食指", "中指", "无名指", "小指"].map((f, i) => (
+            <span key={f}>
+              <b>{i + 1}</b>
+              <small>{f}</small>
+            </span>
+          ))}
+        </div>
+      </section>
+      <div className="studio-split">
+        <aside className="studio-card lesson-picker">
+          <span className="eyebrow">选一小节，轻松开始</span>
+          {PIANO_EXERCISES.map((e, i) => (
+            <button
+              key={e.id}
+              className={cn("lesson-choice", e.id === exerciseId && "selected")}
+              onClick={() => {
+                stop();
+                setExerciseId(e.id);
+                setIndex(0);
+                setDone(false);
+                setMistakes(0);
+                setFeedback("先听一遍，再跟着亮起的琴键弹奏。");
+              }}
+            >
+              <span className="lesson-number">0{i + 1}</span>
+              <span>
+                <b>{e.title}</b>
+                <small>{e.subtitle}</small>
+              </span>
+            </button>
+          ))}
+          <div className="gentle-note">
+            <b>坐好，比弹快更重要</b>
+            <p>
+              坐在琴凳前半部，双脚有支撑。肩膀放松，手指自然弯曲；不靠抬肩或绷紧手腕发力。
             </p>
           </div>
-        )}
-
-        {/* 琴键 */}
-        <div className="glass-dark mt-4 overflow-x-auto rounded-[18px] px-[18px] pb-[18px] pt-[26px]">
-          <div
-            className="relative h-[210px] select-none"
-            style={{ minWidth: whites.length * (W + gap) }}
-          >
-            {whites.map((k) => {
-              const isActive = active.has(k.midi);
-              const isTarget = targetMidi === k.midi;
-              const isWrong = wrongMidi === k.midi;
-              return (
-                <div
-                  key={k.midi}
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                    press(k.midi);
-                  }}
-                  onPointerUp={() => release(k.midi)}
-                  onPointerLeave={() => release(k.midi)}
-                  onPointerCancel={() => release(k.midi)}
-                  className={cn(
-                    "absolute bottom-0 top-0 flex cursor-pointer items-end justify-center rounded-b-lg border pb-2.5 text-xs",
-                    isWrong
-                      ? "border-rose-400 bg-rose-100 text-rose-600"
-                      : isActive
-                        ? "border-[#c8c9cb] bg-[#ffe9d9] text-[#9aa0a6]"
-                        : "border-[#c8c9cb] bg-white text-[#9aa0a6]",
-                    isTarget && "ring-4 ring-emerald-400 ring-inset"
-                  )}
-                  style={{ left: whiteX.get(k.midi), width: W }}
-                >
-                  {keyLabel(k)}
-                </div>
-              );
-            })}
-            {KEYS.filter((k) => k.black).map((k) => {
-              let prev: PKey | null = null;
-              for (let m = k.midi - 1; m >= 0; m--) {
-                const w = KEYS.find((x) => x.midi === m && !x.black);
-                if (w) {
-                  prev = w;
-                  break;
-                }
-              }
-              if (!prev) return null;
-              const x = (whiteX.get(prev.midi) ?? 0) + W;
-              const isActive = active.has(k.midi);
-              const isTarget = targetMidi === k.midi;
-              const isWrong = wrongMidi === k.midi;
-              return (
-                <div
-                  key={k.midi}
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                    press(k.midi);
-                  }}
-                  onPointerUp={() => release(k.midi)}
-                  onPointerLeave={() => release(k.midi)}
-                  onPointerCancel={() => release(k.midi)}
-                  className={cn(
-                    "absolute top-0 z-[2] flex h-[58%] cursor-pointer items-end justify-center rounded-b-md border border-black pb-1.5 text-[9px] text-white/70",
-                    isWrong
-                      ? "bg-rose-500"
-                      : isActive
-                        ? "bg-[var(--color-accent)]"
-                        : "bg-[#202124]",
-                    isTarget && "ring-4 ring-emerald-400 ring-inset"
-                  )}
-                  style={{ left: x - 14, width: 28 }}
-                >
-                  {labelMode === "name" ? `${k.letter}${k.oct}` : ""}
-                </div>
-              );
-            })}
+        </aside>
+        <section className="studio-card practice-desk">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">今天的练习</span>
+              <h3>{exercise.title}</h3>
+            </div>
+            <span className="soft-tag">{exercise.notes.length} 个音</span>
           </div>
-          <div className="mt-3.5 flex flex-wrap items-center gap-3.5 text-[13px] text-white">
-            <span>音色</span>
-            <select
-              value={tone}
-              onChange={(e) => setTone(e.target.value as Tone)}
-              className="rounded-lg border border-white/30 bg-white/[0.14] px-2.5 py-1.5 text-white"
-            >
-              <option value="piano">钢琴</option>
-              <option value="organ">风琴</option>
-              <option value="synth">合成器</option>
-            </select>
-            <span>音量</span>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={vol}
-              onChange={(e) => setVol(Number(e.target.value))}
-              className="w-[120px]"
-            />
-            <span>标注</span>
-            <select
-              value={labelMode}
-              onChange={(e) => setLabelMode(e.target.value as LabelMode)}
-              className="rounded-lg border border-white/30 bg-white/[0.14] px-2.5 py-1.5 text-white"
-            >
-              <option value="solfege">唱名（do re mi）</option>
-              <option value="name">音名（C4）</option>
-              <option value="none">不显示</option>
-            </select>
-            <button
-              onClick={togglePedal}
-              className={cn(
-                "rounded-full px-4 py-1.5 text-[13px] font-medium transition-all active:scale-95",
-                pedal ? "bg-emerald-500 text-white" : "bg-white/[0.14] text-white"
-              )}
-            >
-              {pedal ? "🎹 延音踏板：开" : "延音踏板：关"}
+          <p className="practice-hint">{exercise.hint}</p>
+          <div className="practice-controls">
+            <button className="btn-pill" onClick={playDemo}>
+              <Play size={16} />
+              听示范
             </button>
-            <span className="font-bold text-accent">{lastLabel}</span>
+            <button className="btn-primary" onClick={startFollow}>
+              <Keyboard size={16} />
+              跟着弹
+            </button>
+            <button
+              className="icon-button"
+              onClick={stop}
+              aria-label="停止演示和发声"
+            >
+              <Square size={16} />
+            </button>
+            <label className="tempo-control">
+              速度{" "}
+              <select
+                aria-label="钢琴示范速度"
+                value={bpm}
+                disabled={mode === "demo"}
+                onChange={(e) => setBpm(Number(e.target.value))}
+              >
+                {[50, 60, 70, 80, 100].map((n) => (
+                  <option key={n} value={n}>
+                    {n} 拍/分钟
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="note-ribbon" aria-label="乐句音符与拍数">
+            {exercise.notes.map((n, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "note-chip",
+                  mode !== "free" && i === index && !done && "current",
+                  mode === "follow" && (i < index || done) && "finished",
+                )}
+              >
+                <b>{SOLFEGE[n.midi % 12]}</b>
+                <span>{n.beats} 拍</span>
+                <small>{n.finger ? `${n.finger} 指` : midiLabel(n.midi)}</small>
+              </div>
+            ))}
+          </div>
+          <div className="practice-feedback" role="status">
+            {done ? <Check size={18} /> : <Headphones size={18} />}
+            <span>{feedback}</span>
+          </div>
+          {mode === "follow" && (
+            <div className="follow-summary">
+              <span>
+                {done ? exercise.notes.length : index} / {exercise.notes.length}{" "}
+                个音 · 重试 {mistakes} 次
+              </span>
+              <button onClick={startFollow}>
+                <RotateCcw size={13} />
+                重新练
+              </button>
+            </div>
+          )}
+        </section>
+      </div>
+      <section className="piano-cabinet" aria-label="交互钢琴">
+        <div className="instrument-toolbar">
+          <div>
+            <span className="instrument-wordmark">
+              XWXY <i>音乐室</i>
+            </span>
+            <span className="instrument-readout" aria-live="polite">
+              {lastNote}
+            </span>
+          </div>
+          <button
+            disabled={loading}
+            onClick={enableSamples}
+            className="sample-button"
+          >
+            <Volume2 size={14} />
+            {sampleStatus}
+          </button>
+        </div>
+        <div className="piano-scroll">
+          <div className="piano-keybed" style={{ minWidth: wide ? 990 : 340 }}>
+            {whiteKeys.map(renderKey)}
+            {keys.filter(isBlack).map(renderKey)}
           </div>
         </div>
-        <p className="mt-3 text-[13px] leading-6 text-fog">
-          找 do 的方法：琴键按“2 黑 3 黑”分组，2 个黑键那组左边第一个白键就是 do。跟弹模式先从《小星星》开始，弹对绿圈的键才能前进。
-        </p>
-      </Card>
+        <div className="instrument-bottom">
+          <button
+            className={cn("pedal-button", pedal && "pressed")}
+            aria-pressed={pedal}
+            onClick={() => setSustain(!pedal)}
+          >
+            <span />
+            延音踏板 {pedal ? "已踩下" : "已松开"}
+          </button>
+          <label>
+            <input
+              type="checkbox"
+              checked={labels}
+              onChange={(e) => setLabels(e.target.checked)}
+            />
+            音名提示
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={wide}
+              onChange={(e) => setWide(e.target.checked)}
+            />
+            展开三组八度
+          </label>
+          <label className="volume-control">
+            <Volume2 size={15} />
+            <input
+              aria-label="钢琴音量"
+              type="range"
+              min="0"
+              max="100"
+              value={volume}
+              onChange={(e) => setVolume(Number(e.target.value))}
+            />
+          </label>
+        </div>
+      </section>
+      <p className="studio-footnote">
+        电脑键盘 A S D F G H J K 对应白键，W E T Y U
+        对应黑键；空格按住延音。支持触屏多指弹奏。网页练习帮助认音，手型和触键仍需在真实钢琴上练习。
+      </p>
     </div>
   );
 }

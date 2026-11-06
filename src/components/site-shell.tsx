@@ -45,7 +45,10 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
 
   // 路由切换后收起移动菜单；Esc 关闭
-  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setOpen(false));
+    return () => cancelAnimationFrame(frame);
+  }, [pathname]);
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
@@ -62,7 +65,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     );
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen"><a href="#main-content" className="skip-link">跳到主要内容</a>
       <header className="sticky top-0 z-[100] border-b border-line bg-white/90 backdrop-blur-[12px]">
         <div className="mx-auto flex h-16 max-w-[1180px] items-center gap-3 px-4 sm:px-6">
           <Link href="/" className="flex flex-none items-center gap-2.5" aria-label="XWXY 首页">
@@ -74,12 +77,12 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
             </span>
             <span className="leading-tight">
               <span className="block text-[15px] font-extrabold tracking-[0.12em] text-ink">XWXY</span>
-              <span className="block text-[10.5px] tracking-wide text-fog-light">个人工具导航</span>
+              <span className="block text-[10.5px] tracking-wide text-fog-light">日常与灵感</span>
             </span>
           </Link>
 
           {/* 桌面端导航 */}
-          <nav aria-label="主导航" className="ml-4 hidden items-center gap-1 md:flex">
+          <nav aria-label="主导航" className="ml-4 hidden items-center gap-1 xl:flex">
             {NAV.map((it) => {
               const active = isActive(pathname, it);
               const inner = (
@@ -104,7 +107,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           {/* 移动端汉堡按钮 */}
           <button
             type="button"
-            className="ml-auto flex h-10 w-10 items-center justify-center rounded-xl text-fog transition-colors hover:bg-slate-900/[0.05] hover:text-ink md:hidden"
+            className="ml-auto flex h-10 w-10 items-center justify-center rounded-xl text-fog transition-colors hover:bg-slate-900/[0.05] hover:text-ink xl:hidden"
             aria-expanded={open}
             aria-label={open ? "关闭导航菜单" : "打开导航菜单"}
             onClick={() => setOpen((v) => !v)}
@@ -115,7 +118,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
         {/* 移动端下拉菜单 */}
         {open && (
-          <nav aria-label="主导航" className="border-t border-line bg-white px-4 py-3 md:hidden">
+          <nav aria-label="主导航" className="border-t border-line bg-white px-4 py-3 xl:hidden">
             <ul className="flex flex-col gap-1">
               {NAV.map((it) => {
                 const active = isActive(pathname, it);
@@ -150,7 +153,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         )}
       </header>
 
-      <main className="relative z-[1] mx-auto min-h-screen w-full max-w-[1180px] px-4 pb-16 pt-6 sm:px-6">
+      <main id="main-content" className="relative z-[1] mx-auto min-h-screen w-full max-w-[1180px] px-4 pb-16 pt-6 sm:px-6">
         {children}
       </main>
     </div>
