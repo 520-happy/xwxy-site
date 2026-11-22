@@ -63,7 +63,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-[100] border-b border-white/60 bg-transparent">
+      <header className="sticky top-0 z-[100] border-b border-white/60 bg-[linear-gradient(180deg,rgb(0_0_0/0.3),rgb(0_0_0/0.1)_70%,transparent)]">
         <div className="mx-auto flex h-16 max-w-[1180px] items-center gap-3 px-4 sm:px-6">
           <Link href="/" className="flex flex-none items-center gap-2.5" aria-label="XWXY 首页">
             <span
@@ -115,7 +115,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
         {/* 移动端下拉菜单 */}
         {open && (
-          <nav aria-label="主导航" className="border-t border-white/60 bg-transparent px-4 py-3 md:hidden">
+          <nav aria-label="主导航" className="border-t border-white/60 bg-[linear-gradient(180deg,rgb(0_0_0/0.3),rgb(0_0_0/0.1)_70%,transparent)] px-4 py-3 md:hidden">
             <ul className="flex flex-col gap-1">
               {NAV.map((it) => {
                 const active = isActive(pathname, it);

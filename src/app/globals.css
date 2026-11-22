@@ -12,8 +12,8 @@
   --color-canvas: #fafafa;
   --color-surface: #ffffff;
   --color-ink: #fafafa;
-  --color-fog: rgb(255 255 255 / 0.72);
-  --color-fog-light: rgb(255 255 255 / 0.5);
+  --color-fog: rgb(255 255 255 / 0.8);
+  --color-fog-light: rgb(255 255 255 / 0.68);
   --color-line: #e4e4e7;
 
   /* --- 主色：近黑（shadcn primary） --- */
@@ -82,8 +82,8 @@ body {
   -webkit-font-smoothing: antialiased;
   /* 文字现在是浅色：淡淡的黑色光晕把它从亮色晚霞带里托出来 */
   text-shadow:
-    0 1px 10px rgb(0 0 0 / 0.5),
-    0 0 3px rgb(0 0 0 / 0.35);
+    0 1px 8px rgb(0 0 0 / 0.62),
+    0 0 2px rgb(0 0 0 / 0.45);
 }
 
 /* ---------- 卡片（全透明：只剩边框与阴影，天空完全透出来） ---------- */
