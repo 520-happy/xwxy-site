@@ -39,7 +39,7 @@ function Remember({ children }: { children: ReactNode }) {
 export { Remember };
 
 function Para({ children }: { children: ReactNode }) {
-  return <p className="text-[15px] leading-8 text-zinc-700">{children}</p>;
+  return <p className="text-[15px] leading-8 text-white/85">{children}</p>;
 }
 
 export { Para };
@@ -47,7 +47,7 @@ export { Para };
 /** 交互部件统一面板：浅绿底，和文字区视觉分离，一眼就知道“这里可以点” */
 function IBox({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">{children}</div>
+    <div className="rounded-2xl border border-emerald-300/40 bg-emerald-500/15 p-4">{children}</div>
   );
 }
 
@@ -86,7 +86,7 @@ function Steps({ steps }: { steps: ReactNode[] }) {
           ))}
         </div>
         {last ? (
-          <span className="flex-none text-sm font-medium text-emerald-700">✓ 本节学完啦</span>
+          <span className="flex-none text-sm font-medium text-emerald-300">✓ 本节学完啦</span>
         ) : (
           <button
             onClick={() => setI(i + 1)}
@@ -218,15 +218,15 @@ function AnatomyWidget() {
                   "rounded-full border px-3 py-1 text-[13px]",
                   active === p.id
                     ? "border-emerald-300 bg-emerald-50 font-bold text-emerald-700"
-                    : "border-line bg-white text-fog"
+                    : "border-line bg-transparent text-fog"
                 )}
               >
                 {p.name}
               </button>
             ))}
           </div>
-          <div className="rounded-xl bg-white/70 p-4 text-sm leading-7">
-            <span className="font-bold text-emerald-700">{info.name}</span>
+          <div className="rounded-xl bg-transparent p-4 text-sm leading-7">
+            <span className="font-bold text-emerald-300">{info.name}</span>
             <span className="text-ink">：{info.desc}</span>
           </div>
         </div>
@@ -264,8 +264,8 @@ function OpenStringsWidget() {
             className={cn(
               "flex items-center gap-3 rounded-xl border px-4 py-2.5 text-left transition-colors",
               si === i
-                ? "border-emerald-300 bg-emerald-50"
-                : "border-line bg-white/60 hover:border-emerald-300/50"
+                ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+                : "border-line bg-transparent hover:border-emerald-300/50"
             )}
           >
             <span
@@ -276,11 +276,11 @@ function OpenStringsWidget() {
             <span className="text-sm text-fog">
               {noteName(STRING_BASE[i]).name}（{STRING_SOLFEGE[i]}）
             </span>
-            {si === i && <span className="ml-auto text-xs text-emerald-700">♪ 正在响</span>}
+            {si === i && <span className="ml-auto text-xs text-emerald-300">♪ 正在响</span>}
           </button>
         ))}
       </div>
-      <div className="mt-3 min-h-[44px] rounded-xl bg-white/70 p-3 text-sm leading-7">
+      <div className="mt-3 min-h-[44px] rounded-xl bg-transparent p-3 text-sm leading-7">
         {info ?? <span className="text-fog">点上面任意一根弦，这里会告诉你它的音名和唱名。</span>}
       </div>
       <Remember>
@@ -364,7 +364,7 @@ function PostureWidget() {
             onClick={() => toggle(i)}
             className={cn(
               "flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition-colors",
-              done[i] ? "border-emerald-300/50 bg-emerald-50/60" : "border-line bg-white/60"
+              done[i] ? "border-emerald-300/50 bg-emerald-500/20" : "border-line bg-transparent"
             )}
           >
             <span
@@ -424,7 +424,7 @@ function TabLines({ cols, title }: { cols: { si: number; fret: number }[]; title
   return (
     <div className="mb-5">
       <p className="mb-2 text-[13px] font-medium text-fog">{title}（点数字听声音）</p>
-      <div className="overflow-x-auto rounded-xl border border-line bg-white/70 p-2">
+      <div className="overflow-x-auto rounded-xl border border-line bg-transparent p-2">
         <div className="min-w-[420px]">
           {rows.map((si) => (
             <div key={si} className="flex items-center">
@@ -628,7 +628,7 @@ function ChordChartWidget() {
       <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
         <button
           onClick={playIt}
-          className="rounded-2xl border border-line bg-white/70 p-3 transition-transform hover:scale-[1.03] active:scale-95"
+          className="rounded-2xl border border-line bg-transparent p-3 transition-transform hover:scale-[1.03] active:scale-95"
           aria-label={`弹${chord.name}和弦试听`}
         >
           <ChordDiagram chord={chord} big />
@@ -636,10 +636,10 @@ function ChordChartWidget() {
         </button>
         <div className="min-w-0 flex-1 space-y-2">
           <p className="text-sm leading-7">
-            <b className="text-emerald-700">{chord.name}</b> 怎么按：
+            <b className="text-emerald-300">{chord.name}</b> 怎么按：
           </p>
           <p className="text-sm leading-8 text-ink">{chord.tip}</p>
-          <div className="rounded-xl bg-white/60 p-3 text-[13px] leading-7 text-fog">
+          <div className="rounded-xl bg-transparent p-3 text-[13px] leading-7 text-fog">
             手指编号：1=食指 2=中指 3=无名指 4=小指
             <br />
             按好后<b>逐根拨弦检查</b>：每根都要响亮，不响就调整手指（多半是没按紧或碰到了邻弦）。
@@ -726,7 +726,7 @@ function PickPatternWidget() {
               "rounded-xl border px-2 py-3 text-center transition-colors",
               step === i
                 ? "border-emerald-300 bg-emerald-500 text-white"
-                : "border-line bg-white/60 hover:border-emerald-300/50"
+                : "border-line bg-transparent hover:border-emerald-300/50"
             )}
           >
             <span className={cn("block text-lg font-bold", step === i ? "text-white" : "text-ink")}>
@@ -784,12 +784,12 @@ function FirstChordWidget() {
         </Para>
       </div>
       <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
-        <div className="rounded-2xl border border-line bg-white/70 p-3">
+        <div className="rounded-2xl border border-line bg-transparent p-3">
           <ChordDiagram chord={chord} big />
         </div>
         <div className="min-w-0 flex-1 space-y-3">
           <p className="text-sm leading-8">{chord.tip}</p>
-          <div className="rounded-xl bg-white/60 p-3 text-[13px] leading-7 text-fog">
+          <div className="rounded-xl bg-transparent p-3 text-[13px] leading-7 text-fog">
             <b className="text-ink">按弦三要领：</b>
             <br />
             1. 用<b>指尖</b>按，不是手指肚；
@@ -883,7 +883,7 @@ function FirstSongWidget() {
               "rounded-xl border py-4 text-center transition-all",
               idx === i
                 ? "scale-105 border-emerald-300 bg-emerald-500 text-white shadow-lg"
-                : "border-line bg-white/60 hover:border-emerald-300/50"
+                : "border-line bg-transparent hover:border-emerald-300/50"
             )}
           >
             <span className={cn("block text-xl font-bold", idx === i ? "text-white" : "text-ink")}>
@@ -1098,7 +1098,7 @@ export function ZeroGuitarCourse({ onGoTuner, onGoPiano }: { onGoTuner?: () => v
           </span>
         </div>
         {doneCount === lessons.length && (
-          <p className="mt-3 text-sm font-medium text-emerald-700">
+          <p className="mt-3 text-sm font-medium text-emerald-300">
             🎉 {lessons.length} 节全学完！去「🎶 吉他弹奏」页自由弹吧，或者挑战「🎯 互动跟学」里的歌。
           </p>
         )}
@@ -1114,7 +1114,7 @@ export function ZeroGuitarCourse({ onGoTuner, onGoPiano }: { onGoTuner?: () => v
           return (
             <div key={l.id}>
               {showChapter && (
-                <h2 className="mb-3 mt-6 flex items-center gap-2 text-lg font-bold text-zinc-900">
+                <h2 className="mb-3 mt-6 flex items-center gap-2 text-lg font-bold text-white">
                   <span className="h-5 w-1.5 rounded-full bg-emerald-500" />
                   {l.chapter}
                 </h2>
@@ -1130,7 +1130,7 @@ export function ZeroGuitarCourse({ onGoTuner, onGoPiano }: { onGoTuner?: () => v
                     {isDone ? "✓" : i + 1}
                   </span>
                   <div>
-                    <h3 className="text-xl font-bold leading-7 text-zinc-900">
+                    <h3 className="text-xl font-bold leading-7 text-white">
                       第 {i + 1} 课：{l.title}
                     </h3>
                     <p className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-fog">

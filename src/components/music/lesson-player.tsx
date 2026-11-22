@@ -96,7 +96,7 @@ export function LessonPanel({
                 <div className="mt-0.5 text-xs text-fog">{L.sub}</div>
               </div>
               {done.includes(L.id) && (
-                <div className="flex-none text-[13px] font-medium text-accent">✅ 已学会</div>
+                <div className="flex-none text-[13px] font-medium text-white">✅ 已学会</div>
               )}
             </div>
             <div className="mb-3.5 text-[13px] leading-6 text-fog">{L.desc}</div>
@@ -201,7 +201,7 @@ function PhraseNotes({ notes, highlight, doneCount }: { notes: LessonNote[]; hig
         <div
           key={i}
           className={cn(
-            "flex w-[52px] flex-col items-center rounded-xl border border-white/80 bg-white/60 py-2 backdrop-blur-[10px]",
+            "flex w-[52px] flex-col items-center rounded-xl border border-white/80 bg-transparent py-2",
             i === highlight && "border-accent bg-accent/[0.12] shadow-[0_0_0_2px_rgba(79,109,245,0.4)]",
             i < doneCount && "border-accent/50 bg-accent-soft"
           )}
@@ -392,7 +392,7 @@ function ChordStep({ chord, tip, onNext }: { chord: string; tip: string; onNext:
         <div>
           <div className="text-4xl font-bold">{chord}</div>
           <div className="mt-2 text-[13px] leading-7 text-fog">
-            × = 不弹　○ = 空弦　圆点数字 = 手指编号
+            × = 不弹　○ = 空弦
             <br />
             指尖按弦，逐根拨响检查
           </div>

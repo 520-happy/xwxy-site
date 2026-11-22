@@ -102,7 +102,7 @@ export function ImportPanel({ onAutoLesson }: { onAutoLesson: (lesson: Lesson) =
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="谱子标题，如：晴天 - 周杰伦"
-          className="w-full rounded-[10px] border border-white/75 bg-white/60 px-3.5 py-2.5 text-sm backdrop-blur-[10px] outline-none placeholder:text-fog-light focus:border-accent"
+          className="w-full rounded-[10px] border border-white/75 bg-transparent px-3.5 py-2.5 text-sm outline-none placeholder:text-fog-light focus:border-accent"
         />
       </div>
       <textarea
@@ -110,7 +110,7 @@ export function ImportPanel({ onAutoLesson }: { onAutoLesson: (lesson: Lesson) =
         onChange={(e) => setText(e.target.value)}
         placeholder={"把谱子粘贴在这里…\n\n例如：\nC          G\n故事的小黄花 从出生那年就飘着"}
         rows={10}
-        className="w-full rounded-[14px] border border-white/75 bg-white/60 p-3.5 font-mono text-sm leading-7 backdrop-blur-[10px] outline-none placeholder:text-fog-light focus:border-accent"
+        className="w-full rounded-[14px] border border-white/75 bg-transparent p-3.5 font-mono text-sm leading-7 outline-none placeholder:text-fog-light focus:border-accent"
       />
       <div className="mt-3 flex flex-wrap gap-2.5">
         <Button onClick={handleSave}>💾 保存谱子</Button>
@@ -128,7 +128,7 @@ export function ImportPanel({ onAutoLesson }: { onAutoLesson: (lesson: Lesson) =
               {" "}
               <a
                 href="#"
-                className="font-semibold text-accent"
+                className="font-semibold text-white"
                 onClick={(e) => {
                   e.preventDefault();
                   if (pendingLesson.current) onAutoLesson(pendingLesson.current);

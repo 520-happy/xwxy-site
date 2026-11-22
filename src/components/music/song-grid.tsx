@@ -40,7 +40,7 @@ export function SongGridPanel({ onFollow }: { onFollow: (songTitle: string) => v
               {s.prog.map((c) => (
                 <span
                   key={c}
-                  className="rounded-lg bg-white/70 px-3 py-1.5 text-sm font-bold text-accent-deep shadow-sm"
+                  className="rounded-lg bg-transparent px-3 py-1.5 text-sm font-bold text-white shadow-sm"
                 >
                   {c}
                 </span>

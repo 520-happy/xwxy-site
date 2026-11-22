@@ -60,9 +60,9 @@ function PlatformCard({ p, isBest, index }: { p: Platform; isBest: boolean; inde
       <div className="mb-1.5 text-[32px] font-medium">
         {p.priceLabel ?? fmt(p.price)} <small className="text-sm font-normal text-fog">元</small>
       </div>
-      <div className="mb-2 min-h-[18px] text-[13px] text-accent">{p.guobu}</div>
+      <div className="mb-2 min-h-[18px] text-[13px] text-white">{p.guobu}</div>
       <div className="mb-3.5 min-h-[42px] text-[13px] leading-6 text-fog">{p.note}</div>
-      <div className="flex items-center justify-between border-t border-white/80 pt-3 text-sm font-medium text-accent">
+      <div className="flex items-center justify-between border-t border-white/80 pt-3 text-sm font-medium text-white">
         <span>去看看</span>
         <span className="transition-transform group-hover:translate-x-[5px]">→</span>
       </div>
@@ -85,7 +85,7 @@ export default function PhonePage() {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-50 border-b border-white/80 bg-white/60 backdrop-blur-[20px] backdrop-saturate-[1.5]">
+      <header className="sticky top-0 z-50 border-b border-white/80 bg-transparent">
         <div className="mx-auto flex max-w-[1080px] items-center gap-3.5 px-5 py-3">
           <Link
             href="/"
@@ -131,7 +131,7 @@ export default function PhonePage() {
               </div>
               <div>
                 <div className="mb-1 text-[13px] text-fog">国补到手参考</div>
-                <div className="text-[30px] font-medium text-accent">
+                <div className="text-[30px] font-medium text-white">
                   ¥4,999 <small className="text-[15px] font-normal text-fog">元起</small>
                 </div>
               </div>

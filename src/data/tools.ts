@@ -41,7 +41,7 @@ export const TOOLS: Tool[] = [
     category: "生活实用",
     href: "/phone",
     Icon: Smartphone,
-    iconTile: "bg-[#e7ebff] text-[#4a3fd6]",
+    iconTile: "bg-transparent text-[#c7d2fe]",
     tags: ["OPPO", "价格", "比价", "购物", "手机"],
   },
   {
@@ -51,17 +51,17 @@ export const TOOLS: Tool[] = [
     category: "休闲娱乐",
     href: "/game",
     Icon: Sprout,
-    iconTile: "bg-[#dcf3e4] text-[#2e7d4f]",
+    iconTile: "bg-transparent text-[#bbf7d0]",
     tags: ["游戏", "塔防", "植物", "僵尸"],
   },
   {
     id: "music",
     name: "音乐教室",
-    description: "录音钢琴与原声吉他，循序跟练，慢慢弹出第一首歌",
+    description: "吉他调音器、变调夹、钢琴、新手教程与网红谱",
     category: "学习成长",
     href: "/music",
     Icon: Guitar,
-    iconTile: "bg-[#ebe3ff] text-[#6f42d8]",
+    iconTile: "bg-transparent text-[#ddd6fe]",
     tags: ["吉他", "钢琴", "调音", "和弦", "教程", "乐谱"],
   },
   {
@@ -71,7 +71,7 @@ export const TOOLS: Tool[] = [
     category: "学习成长",
     href: "/proxy",
     Icon: Globe,
-    iconTile: "bg-[#e0f2fe] text-[#0369a1]",
+    iconTile: "bg-transparent text-[#bae6fd]",
     tags: ["家宽", "代理", "住宅IP", "Clash", "教程"],
   },
   {
@@ -81,7 +81,7 @@ export const TOOLS: Tool[] = [
     category: "休闲娱乐",
     href: "/rank",
     Icon: Clapperboard,
-    iconTile: "bg-[#fdeecd] text-[#b07a1e]",
+    iconTile: "bg-transparent text-[#fde68a]",
     tags: ["电视剧", "动漫", "热播", "榜单", "追剧"],
   },
   {
@@ -92,7 +92,7 @@ export const TOOLS: Tool[] = [
     href: "https://pansou.de",
     external: true,
     Icon: FolderSearch,
-    iconTile: "bg-[#d9effa] text-[#2b7fb8]",
+    iconTile: "bg-transparent text-[#bfdbfe]",
     tags: ["网盘", "资源", "搜索", "下载"],
   },
 ];

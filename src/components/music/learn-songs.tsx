@@ -107,7 +107,7 @@ function SongPlayer({ song }: { song: Song }) {
               "rounded-xl border px-4 py-3 text-base font-bold transition-all active:scale-95",
               idx === i
                 ? "scale-105 border-emerald-500 bg-emerald-500 text-white shadow"
-                : "border-line bg-white/70 hover:border-emerald-300/50"
+                : "border-line bg-transparent hover:border-emerald-300/50"
             )}
           >
             {name}
@@ -131,7 +131,7 @@ function SongPlayer({ song }: { song: Song }) {
         </span>
       </div>
       <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
-        <div className="rounded-2xl border border-line bg-white/70 p-2">
+        <div className="rounded-2xl border border-line bg-transparent p-2">
           <ChordDiagram chord={cur} />
           <p className="pb-1 text-center text-xs text-fog">当前和弦：{cur.name}</p>
         </div>
@@ -145,7 +145,7 @@ function SongPlayer({ song }: { song: Song }) {
           <p className="text-[13px] leading-6 text-fog">
             点和弦名可以单个试听。先跟自动循环把换和弦练顺，再自己边弹边唱——唱不上的地方先只弹不唱，顺了再合起来。
           </p>
-          {song.note && <p className="text-[13px] leading-6 text-amber-700">💡 {song.note}</p>}
+          {song.note && <p className="text-[13px] leading-6 text-amber-300">💡 {song.note}</p>}
         </div>
       </div>
     </div>
@@ -170,7 +170,7 @@ function ChordLyricWidget() {
       <p className="mb-3 text-[13px] text-fog">
         弹唱谱长这样：<b>和弦名写在歌词上方</b>，唱到那个字的时候换到这个和弦。点和弦名试听：
       </p>
-      <div className="rounded-xl border border-line bg-white/70 p-4">
+      <div className="rounded-xl border border-line bg-transparent p-4">
         <div className="flex flex-wrap items-end gap-x-1 gap-y-3">
           {LYRIC_LINE.map((seg, i) => (
             <span key={i} className="inline-flex flex-col items-start">
@@ -198,11 +198,11 @@ function ChordLyricWidget() {
       </div>
       {chord && (
         <div className="mt-3 flex items-center gap-3">
-          <div className="rounded-2xl border border-line bg-white/70 p-2">
+          <div className="rounded-2xl border border-line bg-transparent p-2">
             <ChordDiagram chord={chord} />
           </div>
           <p className="text-sm leading-7">
-            <b className="text-emerald-700">{chord.name}</b> 的按法就是这样，点和弦名可以再听一次。
+            <b className="text-emerald-300">{chord.name}</b> 的按法就是这样，点和弦名可以再听一次。
           </p>
         </div>
       )}
@@ -255,7 +255,7 @@ function ArrowWidget() {
               "flex-1 rounded-xl border py-3 text-center text-lg font-bold transition-all",
               slot === i
                 ? "scale-105 border-emerald-500 bg-emerald-500 text-white shadow"
-                : "border-line bg-white/70 text-zinc-700"
+                : "border-line bg-transparent text-white/85"
             )}
           >
             {s === "down" ? "↓" : s === "up" ? "↑" : "×"}
@@ -301,9 +301,9 @@ function CapoWidget() {
         />
         <span className="flex-none text-sm font-bold">{capo} 品</span>
       </div>
-      <div className="rounded-xl bg-white/70 p-4 text-center">
+      <div className="rounded-xl bg-transparent p-4 text-center">
         <p className="text-[15px] leading-8">
-          按 <b>C</b> 的指法，夹 {capo} 品，实际音高是 <b className="text-emerald-700">{CAPO_KEYS[capo]} 调</b>
+          按 <b>C</b> 的指法，夹 {capo} 品，实际音高是 <b className="text-emerald-300">{CAPO_KEYS[capo]} 调</b>
         </p>
         <button
           onClick={play}
@@ -345,8 +345,8 @@ function StructureWidget() {
           </button>
         ))}
       </div>
-      <div className="rounded-xl bg-white/70 p-4 text-sm leading-7">
-        <b className="text-emerald-700">{cur.name}</b>：{cur.desc}
+      <div className="rounded-xl bg-transparent p-4 text-sm leading-7">
+        <b className="text-emerald-300">{cur.name}</b>：{cur.desc}
       </div>
       <p className="mt-3 text-[13px] leading-6 text-fog">
         拿到一首新谱先看结构：先练副歌（最出名、成就感最强），再补主歌，前奏间奏最后抠。

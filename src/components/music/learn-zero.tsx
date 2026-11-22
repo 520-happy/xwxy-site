@@ -67,7 +67,7 @@ function PitchGame() {
   if (phase === "idle")
     return (
       <div className="text-center">
-        <p className="mb-4 text-sm leading-7 text-zinc-600">
+        <p className="mb-4 text-sm leading-7 text-white/70">
           我会放<b>两声</b>，你点出<b>更高</b>的那一声。共 {ROUNDS} 题，听不清可以重听：
         </p>
         <button onClick={start} className="btn-primary px-8 py-3 text-[15px]">
@@ -80,10 +80,10 @@ function PitchGame() {
     return (
       <div className="text-center">
         <p className="text-4xl">{score >= 4 ? "🎉" : score >= 3 ? "👍" : "💪"}</p>
-        <p className="mt-3 text-[15px] font-medium text-zinc-800">
+        <p className="mt-3 text-[15px] font-medium text-white">
           {ROUNDS} 题答对了 {score} 题
         </p>
-        <p className="mt-2 text-sm leading-7 text-zinc-600">
+        <p className="mt-2 text-sm leading-7 text-white/70">
           {score >= 4
             ? "耳朵很灵！吉他上“高”和“低”的感觉就是这样。"
             : score >= 3
@@ -114,12 +114,12 @@ function PitchGame() {
             className={cn(
               "rounded-2xl border-2 py-6 text-lg font-bold transition-all active:scale-95",
               picked === null
-                ? "border-emerald-200 bg-white hover:border-emerald-400 hover:bg-emerald-50"
+                ? "border-emerald-200 bg-transparent hover:border-emerald-400 hover:bg-emerald-50"
                 : i === q!.hi
                   ? "border-emerald-500 bg-emerald-100 text-emerald-800"
                   : picked === i
                     ? "border-rose-400 bg-rose-50 text-rose-700"
-                    : "border-zinc-200 bg-white opacity-60"
+                    : "border-zinc-200 bg-transparent opacity-60"
             )}
           >
             🔊 {label}
@@ -128,7 +128,7 @@ function PitchGame() {
         ))}
       </div>
       <div className="mt-3 flex items-center justify-between">
-        <button onClick={replay} className="text-sm text-emerald-700 underline">
+        <button onClick={replay} className="text-sm text-emerald-300 underline">
           🔁 再听一次
         </button>
         {picked !== null && (
@@ -138,7 +138,7 @@ function PitchGame() {
         )}
       </div>
       {picked !== null && (
-        <p className={cn("mt-3 text-center text-sm font-medium", correct ? "text-emerald-700" : "text-amber-700")}>
+        <p className={cn("mt-3 text-center text-sm font-medium", correct ? "text-emerald-300" : "text-amber-300")}>
           {correct ? "✅ 对啦！就是这声更高。" : `💡 是${q!.hi === 0 ? "第一" : "第二"}声更高，再听听感受下。`}
         </p>
       )}
@@ -214,7 +214,7 @@ function RhythmGame() {
   if (phase === "idle")
     return (
       <div className="text-center">
-        <p className="mb-4 text-sm leading-7 text-zinc-600">
+        <p className="mb-4 text-sm leading-7 text-white/70">
           节拍器会"哒哒哒"响 {BEATS} 下（第一下重）。你跟着<b>每一拍点一下</b>大按钮，看看能不能合上：
         </p>
         <button onClick={start} className="btn-primary px-8 py-3 text-[15px]">
@@ -227,10 +227,10 @@ function RhythmGame() {
     return (
       <div className="text-center">
         <p className="text-4xl">{good >= 6 ? "🎉" : good >= 4 ? "👍" : "💪"}</p>
-        <p className="mt-3 text-[15px] font-medium text-zinc-800">
+        <p className="mt-3 text-[15px] font-medium text-white">
           {BEATS} 拍里，{good} 拍合上了
         </p>
-        <p className="mt-2 text-sm leading-7 text-zinc-600">
+        <p className="mt-2 text-sm leading-7 text-white/70">
           {good >= 6
             ? "节奏感很稳！弹吉他最需要的就是这个。"
             : "多试几次，身体会记住这个速度。吉他手都是这样练出来的。"}
@@ -271,7 +271,7 @@ function RhythmGame() {
       <p className="mt-3 text-[13px] text-fog">
         {results.length > 0 ? (
           <>
-            上一拍：<b className="text-zinc-800">{results[results.length - 1]}</b>
+            上一拍：<b className="text-white">{results[results.length - 1]}</b>
           </>
         ) : (
           "听到哒声就点，第 1 拍最重"
@@ -340,7 +340,7 @@ function NoteNameGame() {
           <button
             key={s.n}
             onClick={() => play(s.f)}
-            className="rounded-xl border border-emerald-200 bg-white py-3 text-sm font-bold text-emerald-800 transition-all hover:bg-emerald-50 active:scale-95"
+            className="rounded-xl border border-emerald-200 bg-transparent py-3 text-sm font-bold text-emerald-300 transition-all hover:bg-emerald-500/20 active:scale-95"
           >
             {s.n}
           </button>
@@ -349,7 +349,7 @@ function NoteNameGame() {
 
       {phase === "idle" && (
         <div className="text-center">
-          <p className="mb-4 text-sm leading-7 text-zinc-600">
+          <p className="mb-4 text-sm leading-7 text-white/70">
             记住 do / re / mi 的声音了吗？来玩<b>听音找名</b>：放一声，点出它的名字，共 {ROUNDS} 题：
           </p>
           <button onClick={start} className="btn-primary px-8 py-3 text-[15px]">
@@ -359,7 +359,7 @@ function NoteNameGame() {
       )}
 
       {phase === "asking" && target && (
-        <div className="rounded-xl bg-white/70 p-3 text-center">
+        <div className="rounded-xl bg-transparent p-3 text-center">
           <div className="mb-2 flex items-center justify-between text-[13px] text-fog">
             <span>
               第 {round + 1} / {ROUNDS} 题
@@ -368,7 +368,7 @@ function NoteNameGame() {
           </div>
           <button
             onClick={() => play(SOLFEGE.find((s) => s.n === target)!.f)}
-            className="mb-3 text-sm text-emerald-700 underline"
+            className="mb-3 text-sm text-emerald-300 underline"
           >
             🔊 再听一次
           </button>
@@ -381,12 +381,12 @@ function NoteNameGame() {
                 className={cn(
                   "rounded-2xl border-2 py-5 text-xl font-bold transition-all active:scale-95",
                   picked === null
-                    ? "border-emerald-200 bg-white hover:border-emerald-400"
+                    ? "border-emerald-200 bg-transparent hover:border-emerald-400"
                     : n === target
                       ? "border-emerald-500 bg-emerald-100 text-emerald-800"
                       : picked === n
                         ? "border-rose-400 bg-rose-50 text-rose-700"
-                        : "border-zinc-200 bg-white opacity-60"
+                        : "border-zinc-200 bg-transparent opacity-60"
                 )}
               >
                 {n}
@@ -395,7 +395,7 @@ function NoteNameGame() {
           </div>
           {picked !== null && (
             <div className="mt-3">
-              <p className={cn("text-sm font-medium", picked === target ? "text-emerald-700" : "text-amber-700")}>
+              <p className={cn("text-sm font-medium", picked === target ? "text-emerald-300" : "text-amber-300")}>
                 {picked === target ? "✅ 对啦！" : `💡 是 ${target}，记住它的声音`}
               </p>
               <button onClick={next} className="btn-primary mt-2 px-6 py-2 text-sm">
@@ -408,7 +408,7 @@ function NoteNameGame() {
 
       {phase === "done" && (
         <div className="mt-3 text-center">
-          <p className="text-[15px] font-medium text-zinc-800">
+          <p className="text-[15px] font-medium text-white">
             {ROUNDS} 题对了 {score} 题 {score >= 4 ? "🎉" : "💪"}
           </p>
           <button onClick={start} className="btn-pill mt-3 px-6 py-2.5 text-sm">
@@ -447,7 +447,7 @@ function FretMagic() {
               "flex-1 rounded-xl border-2 py-4 text-sm font-bold transition-all active:scale-95",
               last?.fret === f
                 ? "border-amber-500 bg-amber-100 text-amber-900"
-                : "border-zinc-200 bg-white hover:border-amber-300"
+                : "border-zinc-200 bg-transparent hover:border-amber-300"
             )}
           >
             {f === 0 ? "空弦" : `${f}品`}
@@ -458,8 +458,8 @@ function FretMagic() {
         {last ? `🔊 ${last.fret === 0 ? "空弦" : `${last.fret}品`} = ${last.name}（${last.hz} Hz）` : "点上面的格子听声音"}
       </p>
 
-      <div className="rounded-xl bg-white/70 p-4 text-center">
-        <p className="mb-3 text-[15px] font-medium text-zinc-800">
+      <div className="rounded-xl bg-transparent p-4 text-center">
+        <p className="mb-3 text-[15px] font-medium text-white">
           考考你：手指越往<b>右</b>（往琴身方向）按，声音会？
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -470,12 +470,12 @@ function FretMagic() {
               className={cn(
                 "rounded-2xl border-2 py-4 text-base font-bold transition-all active:scale-95",
                 picked === null
-                  ? "border-emerald-200 bg-white hover:border-emerald-400"
+                  ? "border-emerald-200 bg-transparent hover:border-emerald-400"
                   : opt === "变高了"
                     ? "border-emerald-500 bg-emerald-100 text-emerald-800"
                     : picked === opt
                       ? "border-rose-400 bg-rose-50 text-rose-700"
-                      : "border-zinc-200 bg-white opacity-60"
+                      : "border-zinc-200 bg-transparent opacity-60"
               )}
             >
               {opt === "变高了" ? "📈 " : "📉 "}
@@ -484,7 +484,7 @@ function FretMagic() {
           ))}
         </div>
         {picked !== null && (
-          <p className={cn("mt-3 text-sm font-medium", picked === "变高了" ? "text-emerald-700" : "text-amber-700")}>
+          <p className={cn("mt-3 text-sm font-medium", picked === "变高了" ? "text-emerald-300" : "text-amber-300")}>
             {picked === "变高了"
               ? "✅ 完全正确！这就是吉他最核心的秘密。"
               : "💡 再点点上面的格子对比下——是变高了哦。"}

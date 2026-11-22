@@ -31,7 +31,7 @@ function RankCard({ item, index }: { item: RankItem; index: number }) {
             className="aspect-[3/4] w-full object-cover"
           />
         ) : (
-          <div className="flex aspect-[3/4] w-full items-center justify-center bg-white/40 text-4xl">
+          <div className="flex aspect-[3/4] w-full items-center justify-center bg-transparent text-4xl">
             📺
           </div>
         )}
@@ -40,7 +40,7 @@ function RankCard({ item, index }: { item: RankItem; index: number }) {
         <h3 className="mb-1 text-[15px] font-semibold leading-6">{item.title}</h3>
         {item.actors && <div className="mb-1 text-xs text-fog">{item.actors}</div>}
         {item.desc && <div className="mb-1.5 text-xs leading-5 text-fog-light">{item.desc}</div>}
-        {item.heat && <div className="text-xs font-medium text-accent">🔥 {item.heat}</div>}
+        {item.heat && <div className="text-xs font-medium text-white">🔥 {item.heat}</div>}
       </div>
     </motion.div>
   );

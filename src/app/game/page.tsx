@@ -33,7 +33,7 @@ export default function GamePage() {
       <div className="relative w-[1000px] max-w-full">
         <Link
           href="/"
-          className="btn-pill absolute bottom-2.5 right-3 z-[6] px-[18px] py-[7px] text-sm text-accent-deep"
+          className="btn-pill absolute bottom-2.5 right-3 z-[6] px-[18px] py-[7px] text-sm text-white"
         >
           🏠 首页
         </Link>

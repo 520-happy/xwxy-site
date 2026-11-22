@@ -126,7 +126,7 @@ function StrumDirWidget() {
       <div className="grid grid-cols-2 gap-3">
         <button
           onClick={down}
-          className="rounded-2xl border border-emerald-200 bg-white py-6 text-center transition-all hover:bg-emerald-50 active:scale-95"
+          className="rounded-2xl border border-emerald-200 bg-transparent py-6 text-center transition-all hover:bg-emerald-50 active:scale-95"
         >
           <span className="block text-3xl">↓</span>
           <span className="mt-1 block text-sm font-bold">下扫</span>
@@ -134,7 +134,7 @@ function StrumDirWidget() {
         </button>
         <button
           onClick={up}
-          className="rounded-2xl border border-emerald-200 bg-white py-6 text-center transition-all hover:bg-emerald-50 active:scale-95"
+          className="rounded-2xl border border-emerald-200 bg-transparent py-6 text-center transition-all hover:bg-emerald-50 active:scale-95"
         >
           <span className="block text-3xl">↑</span>
           <span className="mt-1 block text-sm font-bold">上扫</span>
@@ -202,7 +202,7 @@ function PatternWidget() {
               "rounded-xl border py-3 text-center text-lg font-bold transition-all",
               slot === i
                 ? "scale-105 border-emerald-500 bg-emerald-500 text-white shadow"
-                : "border-line bg-white/70 text-zinc-700"
+                : "border-line bg-transparent text-white/85"
             )}
           >
             {s === "down" ? "↓" : s === "up" ? "↑" : "·"}
@@ -253,14 +253,14 @@ function MuteWidget() {
       <div className="flex gap-3">
         <button
           onClick={play}
-          className="flex-1 rounded-2xl border border-emerald-200 bg-white py-5 text-center transition-all hover:bg-emerald-50 active:scale-95"
+          className="flex-1 rounded-2xl border border-emerald-200 bg-transparent py-5 text-center transition-all hover:bg-emerald-50 active:scale-95"
         >
           <span className="block text-2xl">♪</span>
           <span className="mt-1 block text-sm font-bold">扫响 Em</span>
         </button>
         <button
           onClick={cut}
-          className="flex-1 rounded-2xl border border-amber-200 bg-white py-5 text-center transition-all hover:bg-amber-50 active:scale-95"
+          className="flex-1 rounded-2xl border border-amber-200 bg-transparent py-5 text-center transition-all hover:bg-amber-50 active:scale-95"
         >
           <span className="block text-2xl">✋</span>
           <span className="mt-1 block text-sm font-bold">切！收住</span>
@@ -318,7 +318,7 @@ function NewChordsWidget() {
       <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
         <button
           onClick={() => strumChord(chord.frets)}
-          className="rounded-2xl border border-line bg-white/70 p-3 transition-transform hover:scale-[1.03] active:scale-95"
+          className="rounded-2xl border border-line bg-transparent p-3 transition-transform hover:scale-[1.03] active:scale-95"
           aria-label={`弹${chord.name}和弦试听`}
         >
           <ChordDiagram chord={chord} big />
@@ -326,7 +326,7 @@ function NewChordsWidget() {
         </button>
         <div className="min-w-0 flex-1 space-y-2">
           <p className="text-sm leading-7">
-            <b className="text-emerald-700">{chord.name}</b> 怎么按：
+            <b className="text-emerald-300">{chord.name}</b> 怎么按：
           </p>
           <p className="text-sm leading-8 text-ink">{chord.tip}</p>
           <p className="text-[13px] leading-7 text-fog">
@@ -373,7 +373,7 @@ function FChordWidget() {
       <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
         <button
           onClick={() => strumChord(chord.frets)}
-          className="rounded-2xl border border-line bg-white/70 p-3 transition-transform hover:scale-[1.03] active:scale-95"
+          className="rounded-2xl border border-line bg-transparent p-3 transition-transform hover:scale-[1.03] active:scale-95"
           aria-label={`弹${chord.name}试听`}
         >
           <ChordDiagram chord={chord} big />
@@ -454,7 +454,7 @@ function SwitchWidget() {
                     "rounded-full border px-2.5 py-1 text-xs font-bold",
                     (which === "a" ? a : b) === c.name
                       ? "border-emerald-300 bg-emerald-50 text-emerald-700"
-                      : "border-line bg-white text-fog"
+                      : "border-line bg-transparent text-fog"
                   )}
                 >
                   {c.name}
@@ -472,7 +472,7 @@ function SwitchWidget() {
               "rounded-2xl border-2 p-2 text-center transition-all",
               auto && cur === (i === 0 ? "a" : "b")
                 ? "border-emerald-500 bg-emerald-50/60 shadow"
-                : "border-line bg-white/60"
+                : "border-line bg-transparent"
             )}
           >
             <p className="mb-1 text-sm font-bold">{c.name}</p>
@@ -563,7 +563,7 @@ function ProgWidget() {
               "rounded-xl border py-4 text-center transition-all",
               idx === i
                 ? "scale-105 border-emerald-300 bg-emerald-500 text-white shadow-lg"
-                : "border-line bg-white/60 hover:border-emerald-300/50"
+                : "border-line bg-transparent hover:border-emerald-300/50"
             )}
           >
             <span className={cn("block text-xl font-bold", idx === i ? "text-white" : "text-ink")}>
@@ -658,7 +658,7 @@ function CrawlWidget() {
               "rounded-lg border py-2 text-center text-xs transition-all active:scale-95",
               idx === i
                 ? "border-emerald-500 bg-emerald-500 text-white shadow"
-                : "border-line bg-white/70 text-zinc-700"
+                : "border-line bg-transparent text-white/85"
             )}
           >
             <span className="block font-bold">
@@ -745,7 +745,7 @@ function ScaleWidget() {
               "rounded-xl border py-3 text-center transition-all active:scale-95",
               idx === i
                 ? "border-emerald-500 bg-emerald-500 text-white shadow"
-                : "border-line bg-white/70 hover:border-emerald-300/50"
+                : "border-line bg-transparent hover:border-emerald-300/50"
             )}
           >
             <span className={cn("block text-sm font-bold", idx === i ? "text-white" : "text-ink")}>
@@ -769,7 +769,7 @@ function ScaleWidget() {
         </button>
         <button
           onClick={() => (auto ? stop() : start(true))}
-          className="rounded-full border border-emerald-300 bg-white px-6 py-3 text-sm font-medium text-emerald-700 transition-transform active:scale-95"
+          className="rounded-full border border-emerald-300 bg-transparent px-6 py-3 text-sm font-medium text-emerald-300 transition-transform active:scale-95"
         >
           ◀ 下行（do→do）
         </button>
@@ -869,7 +869,7 @@ function MelodyWidget() {
                     "min-w-[44px] rounded-lg border px-2 py-2 text-center text-xs transition-all active:scale-95",
                     idx === gi
                       ? "border-emerald-500 bg-emerald-500 text-white shadow"
-                      : "border-line bg-white/70 text-zinc-700"
+                      : "border-line bg-transparent text-white/85"
                   )}
                 >
                   <span className="block font-bold">{n.name}</span>
@@ -925,25 +925,25 @@ function SemiWidget() {
               "min-w-[40px] flex-1 rounded-lg border py-2.5 text-center text-xs font-bold transition-all active:scale-95",
               first === f || second === f
                 ? "border-amber-500 bg-amber-100 text-amber-900"
-                : "border-line bg-white/70 text-zinc-700"
+                : "border-line bg-transparent text-white/85"
             )}
           >
             {f === 0 ? "空弦" : `${f}品`}
           </button>
         ))}
       </div>
-      <div className="min-h-[52px] rounded-xl bg-white/70 p-3 text-center text-sm leading-7">
+      <div className="min-h-[52px] rounded-xl bg-transparent p-3 text-center text-sm leading-7">
         {diff === null ? (
           <span className="text-fog">点两个品，这里告诉你它们的关系。</span>
         ) : diff === 0 ? (
           <span>同一个品，同一个音。</span>
         ) : diff === 1 ? (
           <span>
-            <b className="text-emerald-700">相差 1 品 = 半音</b>（最小的距离，比如 mi 到 fa、si 到 do 之间就是半音）。
+            <b className="text-emerald-300">相差 1 品 = 半音</b>（最小的距离，比如 mi 到 fa、si 到 do 之间就是半音）。
           </span>
         ) : diff === 2 ? (
           <span>
-            <b className="text-emerald-700">相差 2 品 = 全音</b>（中间隔了一个半音，比如 do 到 re）。
+            <b className="text-emerald-300">相差 2 品 = 全音</b>（中间隔了一个半音，比如 do 到 re）。
           </span>
         ) : (
           <span>
@@ -990,7 +990,7 @@ function ScaleFormulaWidget() {
                 "rounded-xl border px-3 py-3 text-center transition-all active:scale-95",
                 idx === i
                   ? "border-emerald-500 bg-emerald-500 text-white shadow"
-                  : "border-line bg-white/70 hover:border-emerald-300/50"
+                  : "border-line bg-transparent hover:border-emerald-300/50"
               )}
             >
               <span className={cn("block text-sm font-bold", idx === i ? "text-white" : "text-ink")}>
@@ -1046,7 +1046,7 @@ function ChordBuildWidget() {
                 "flex-1 rounded-xl border py-4 text-center text-sm font-bold transition-all active:scale-95",
                 played[i]
                   ? "border-emerald-300 bg-emerald-50 text-emerald-800"
-                  : "border-line bg-white/70 hover:border-emerald-300/50"
+                  : "border-line bg-transparent hover:border-emerald-300/50"
               )}
             >
               {n.name}
@@ -1107,7 +1107,7 @@ function StringQuiz() {
   if (phase === "idle")
     return (
       <div className="text-center">
-        <p className="mb-4 text-sm leading-7 text-zinc-600">
+        <p className="mb-4 text-sm leading-7 text-white/70">
           放一根空弦的声音，你猜是第几弦。共 {ROUNDS} 题，粗弦低沉、细弦明亮：
         </p>
         <button onClick={start} className="btn-primary px-8 py-3 text-[15px]">
@@ -1119,7 +1119,7 @@ function StringQuiz() {
     return (
       <div className="text-center">
         <p className="text-4xl">{score >= 4 ? "🎉" : score >= 3 ? "👍" : "💪"}</p>
-        <p className="mt-3 text-[15px] font-medium text-zinc-800">
+        <p className="mt-3 text-[15px] font-medium text-white">
           {ROUNDS} 题对了 {score} 题
         </p>
         <button onClick={start} className="btn-pill mt-4 px-6 py-2.5 text-sm">
@@ -1134,7 +1134,7 @@ function StringQuiz() {
           第 {round + 1} / {ROUNDS} 题
         </span>
         <span>得分：{score}</span>
-        <button onClick={() => target !== null && pluckOpen(target, 0.95)} className="text-emerald-700 underline">
+        <button onClick={() => target !== null && pluckOpen(target, 0.95)} className="text-emerald-300 underline">
           🔊 再听一次
         </button>
       </div>
@@ -1147,12 +1147,12 @@ function StringQuiz() {
             className={cn(
               "rounded-2xl border-2 py-4 text-base font-bold transition-all active:scale-95",
               picked === null
-                ? "border-emerald-200 bg-white hover:border-emerald-400"
+                ? "border-emerald-200 bg-transparent hover:border-emerald-400"
                 : i === target
                   ? "border-emerald-500 bg-emerald-100 text-emerald-800"
                   : picked === i
                     ? "border-rose-400 bg-rose-50 text-rose-700"
-                    : "border-zinc-200 bg-white opacity-60"
+                    : "border-zinc-200 bg-transparent opacity-60"
             )}
           >
             {STRING_LABEL[i]}
@@ -1161,7 +1161,7 @@ function StringQuiz() {
       </div>
       {picked !== null && (
         <div className="mt-3 text-center">
-          <p className={cn("text-sm font-medium", picked === target ? "text-emerald-700" : "text-amber-700")}>
+          <p className={cn("text-sm font-medium", picked === target ? "text-emerald-300" : "text-amber-300")}>
             {picked === target ? "✅ 对啦！" : `💡 是${STRING_LABEL[target!]}，记住它的声音`}
           </p>
           <button onClick={next} className="btn-primary mt-2 px-6 py-2 text-sm">
@@ -1217,7 +1217,7 @@ function FretFind() {
   if (phase === "idle")
     return (
       <div className="text-center">
-        <p className="mb-4 text-sm leading-7 text-zinc-600">
+        <p className="mb-4 text-sm leading-7 text-white/70">
           在指板上找到指定的音（1～5 品 + 空弦）。点格子会出声，找对了就过关，共 {ROUNDS} 题：
         </p>
         <button onClick={start} className="btn-primary px-8 py-3 text-[15px]">
@@ -1229,7 +1229,7 @@ function FretFind() {
     return (
       <div className="text-center">
         <p className="text-4xl">{score >= 4 ? "🎉" : score >= 3 ? "👍" : "💪"}</p>
-        <p className="mt-3 text-[15px] font-medium text-zinc-800">
+        <p className="mt-3 text-[15px] font-medium text-white">
           {ROUNDS} 题找到了 {score} 个音
         </p>
         <button onClick={start} className="btn-pill mt-4 px-6 py-2.5 text-sm">
@@ -1247,9 +1247,9 @@ function FretFind() {
         <span>得分：{score}</span>
       </div>
       <p className="mb-3 text-center text-lg font-bold">
-        请找出：<span className="text-emerald-700">{target}</span> 音
+        请找出：<span className="text-emerald-300">{target}</span> 音
       </p>
-      <div className="overflow-x-auto rounded-xl border border-line bg-white/70 p-2">
+      <div className="overflow-x-auto rounded-xl border border-line bg-transparent p-2">
         <div className="min-w-[380px]">
           {rows.map((si) => (
             <div key={si} className="flex items-center">
@@ -1270,7 +1270,7 @@ function FretFind() {
                           ? "border-emerald-500 bg-emerald-500 text-white"
                           : tried.includes(key)
                             ? "border-zinc-200 bg-zinc-100 text-zinc-400"
-                            : "border-zinc-200 bg-white hover:border-amber-300"
+                            : "border-zinc-200 bg-transparent hover:border-amber-300"
                       )}
                     >
                       {fret === 0 ? "空" : fret}
@@ -1284,7 +1284,7 @@ function FretFind() {
       </div>
       {found && (
         <div className="mt-3 text-center">
-          <p className="text-sm font-medium text-emerald-700">✅ 找到了！{target} 音就在这里。</p>
+          <p className="text-sm font-medium text-emerald-300">✅ 找到了！{target} 音就在这里。</p>
           <button onClick={next} className="btn-primary mt-2 px-6 py-2 text-sm">
             {round + 1 >= ROUNDS ? "看成绩" : "下一题 →"}
           </button>
@@ -1339,7 +1339,7 @@ function ChordQuiz() {
   if (phase === "idle")
     return (
       <div className="text-center">
-        <p className="mb-4 text-sm leading-7 text-zinc-600">
+        <p className="mb-4 text-sm leading-7 text-white/70">
           看和弦图，猜它是哪个和弦。共 {ROUNDS} 题：
         </p>
         <button onClick={start} className="btn-primary px-8 py-3 text-[15px]">
@@ -1351,7 +1351,7 @@ function ChordQuiz() {
     return (
       <div className="text-center">
         <p className="text-4xl">{score >= 4 ? "🎉" : score >= 3 ? "👍" : "💪"}</p>
-        <p className="mt-3 text-[15px] font-medium text-zinc-800">
+        <p className="mt-3 text-[15px] font-medium text-white">
           {ROUNDS} 题对了 {score} 题
         </p>
         <button onClick={start} className="btn-pill mt-4 px-6 py-2.5 text-sm">
@@ -1368,7 +1368,7 @@ function ChordQuiz() {
         <span>得分：{score}</span>
       </div>
       <div className="mb-3 flex justify-center">
-        <div className="rounded-2xl border border-line bg-white/70 p-2">
+        <div className="rounded-2xl border border-line bg-transparent p-2">
           <ChordDiagram chord={target} />
         </div>
       </div>
@@ -1381,12 +1381,12 @@ function ChordQuiz() {
             className={cn(
               "rounded-2xl border-2 py-4 text-lg font-bold transition-all active:scale-95",
               picked === null
-                ? "border-emerald-200 bg-white hover:border-emerald-400"
+                ? "border-emerald-200 bg-transparent hover:border-emerald-400"
                 : n === target.name
                   ? "border-emerald-500 bg-emerald-100 text-emerald-800"
                   : picked === n
                     ? "border-rose-400 bg-rose-50 text-rose-700"
-                    : "border-zinc-200 bg-white opacity-60"
+                    : "border-zinc-200 bg-transparent opacity-60"
             )}
           >
             {n}
@@ -1395,7 +1395,7 @@ function ChordQuiz() {
       </div>
       {picked !== null && (
         <div className="mt-3 text-center">
-          <p className={cn("text-sm font-medium", picked === target.name ? "text-emerald-700" : "text-amber-700")}>
+          <p className={cn("text-sm font-medium", picked === target.name ? "text-emerald-300" : "text-amber-300")}>
             {picked === target.name ? "✅ 对啦！" : `💡 是 ${target.name}`}
           </p>
           <button onClick={next} className="btn-primary mt-2 px-6 py-2 text-sm">
@@ -1488,7 +1488,7 @@ function StrumQuiz() {
   if (phase === "idle")
     return (
       <div className="text-center">
-        <p className="mb-4 text-sm leading-7 text-zinc-600">
+        <p className="mb-4 text-sm leading-7 text-white/70">
           听一段扫弦，猜它是下面哪种节奏型。共 {ROUNDS} 题，仔细听上下扫的区别：
         </p>
         <button onClick={start} className="btn-primary px-8 py-3 text-[15px]">
@@ -1500,7 +1500,7 @@ function StrumQuiz() {
     return (
       <div className="text-center">
         <p className="text-4xl">{score >= 2 ? "🎉" : "💪"}</p>
-        <p className="mt-3 text-[15px] font-medium text-zinc-800">
+        <p className="mt-3 text-[15px] font-medium text-white">
           {ROUNDS} 题对了 {score} 题
         </p>
         <button onClick={start} className="btn-pill mt-4 px-6 py-2.5 text-sm">
@@ -1515,7 +1515,7 @@ function StrumQuiz() {
           第 {round + 1} / {ROUNDS} 题
         </span>
         <span>得分：{score}</span>
-        <button onClick={() => playPattern(target)} className="text-emerald-700 underline">
+        <button onClick={() => playPattern(target)} className="text-emerald-300 underline">
           🔊 再听一次
         </button>
       </div>
@@ -1528,12 +1528,12 @@ function StrumQuiz() {
             className={cn(
               "w-full rounded-2xl border-2 py-4 text-center font-mono text-base font-bold tracking-wider transition-all active:scale-95",
               picked === null
-                ? "border-emerald-200 bg-white hover:border-emerald-400"
+                ? "border-emerald-200 bg-transparent hover:border-emerald-400"
                 : i === target
                   ? "border-emerald-500 bg-emerald-100 text-emerald-800"
                   : picked === i
                     ? "border-rose-400 bg-rose-50 text-rose-700"
-                    : "border-zinc-200 bg-white opacity-60"
+                    : "border-zinc-200 bg-transparent opacity-60"
             )}
           >
             {p.label}
@@ -1542,7 +1542,7 @@ function StrumQuiz() {
       </div>
       {picked !== null && (
         <div className="mt-3 text-center">
-          <p className={cn("text-sm font-medium", picked === target ? "text-emerald-700" : "text-amber-700")}>
+          <p className={cn("text-sm font-medium", picked === target ? "text-emerald-300" : "text-amber-300")}>
             {picked === target ? "✅ 对啦！耳朵很灵。" : `💡 是第 ${target + 1} 种：${STRUM_QUIZ_PATTERNS[target].label}`}
           </p>
           <button onClick={next} className="btn-primary mt-2 px-6 py-2 text-sm">

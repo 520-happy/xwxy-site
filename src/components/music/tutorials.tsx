@@ -5,12 +5,12 @@ import { CHORDS, chordSVG } from "@/data/chords";
 
 function Step({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-xl bg-white/50 px-4 py-3 text-sm leading-8 text-ink">{children}</div>
+    <div className="rounded-xl bg-transparent px-4 py-3 text-sm leading-8 text-ink">{children}</div>
   );
 }
 
 function H4({ children }: { children: React.ReactNode }) {
-  return <h4 className="mb-2 mt-5 text-[15px] font-semibold text-accent-deep">{children}</h4>;
+  return <h4 className="mb-2 mt-5 text-[15px] font-semibold text-ink">{children}</h4>;
 }
 
 export function TutorialsPanel() {
@@ -48,7 +48,7 @@ export function TutorialsPanel() {
           {["Em", "Am", "C", "G", "D", "E", "A", "Dm", "F"].map((n) => (
             <div
               key={n}
-              className="flex flex-col items-center rounded-xl border border-white/80 bg-white/50 p-2"
+              className="flex flex-col items-center rounded-xl border border-white/80 bg-transparent p-2"
             >
               <div dangerouslySetInnerHTML={{ __html: chordSVG(n) }} />
               <div className="text-sm font-bold">{n}</div>

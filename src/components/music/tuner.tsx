@@ -145,7 +145,7 @@ export function TunerPanel() {
                 title={f === 0 ? "不夹变调夹" : `变调夹夹在第${f}品`}
                 onClick={() => setCapo(f)}
                 className={cn(
-                  "h-[42px] w-[42px] rounded-xl border border-white/85 bg-white/60 text-[15px] font-bold backdrop-blur-[10px] transition-all",
+                  "h-[42px] w-[42px] rounded-xl border border-white/85 bg-transparent text-[15px] font-bold transition-all",
                   capo === f &&
                     "border-transparent bg-zinc-900 text-white shadow-[0_4px_12px_rgb(0_0_0/0.18)]"
                 )}
@@ -167,12 +167,12 @@ export function TunerPanel() {
                 key={st.s}
                 onClick={() => playString(i)}
                 className={cn(
-                  "rounded-[14px] border-[1.5px] border-white/85 bg-white/60 px-2 py-3.5 text-center backdrop-blur-[10px] transition-all hover:border-accent",
+                  "rounded-[14px] border-[1.5px] border-white/85 bg-transparent px-2 py-3.5 text-center transition-all hover:border-accent",
                   playing === i && "border-accent bg-accent/[0.14] shadow-[0_4px_16px_rgba(79,109,245,0.25)]"
                 )}
               >
                 <div className="text-[15px] font-bold">{st.s} 弦</div>
-                <div className="my-1 text-[22px] font-bold text-accent">
+                <div className="my-1 text-[22px] font-bold text-white">
                   {nn.name}
                   {nn.oct}
                 </div>

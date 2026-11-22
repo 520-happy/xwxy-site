@@ -22,20 +22,20 @@ function Section({
 }) {
   return (
     <section className="mb-10">
-      <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-zinc-900">
+      <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-white">
         <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-sky-600 text-[12px] font-bold text-white">
           {no}
         </span>
         {title}
       </h2>
-      <div className="space-y-4 text-[15px] leading-7 text-zinc-700">{children}</div>
+      <div className="space-y-4 text-[15px] leading-7 text-white/85">{children}</div>
     </section>
   );
 }
 
 function Card({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("rounded-2xl border border-line bg-white p-5 shadow-sm", className)}>
+    <div className={cn("rounded-2xl border border-line bg-transparent p-5 shadow-sm", className)}>
       {children}
     </div>
   );
@@ -62,7 +62,7 @@ function FlowWidget() {
         </button>
       </div>
       <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
-        <div className="flex-1 rounded-xl bg-zinc-50 p-3 text-center">
+        <div className="flex-1 rounded-xl bg-white/10 p-3 text-center">
           <div className="text-2xl">🏠</div>
           <p className="mt-1 text-sm font-bold">你</p>
           <p className="text-xs text-fog">家里宽带 · IP：183.192.×.×</p>
@@ -71,7 +71,7 @@ function FlowWidget() {
         <div
           className={cn(
             "flex-1 rounded-xl p-3 text-center transition-all",
-            viaProxy ? "bg-sky-50 ring-2 ring-sky-500" : "bg-zinc-50 opacity-40"
+            viaProxy ? "bg-sky-500/25 ring-2 ring-sky-500" : "bg-white/5 opacity-60"
           )}
         >
           <div className="text-2xl">🏡</div>
@@ -79,12 +79,12 @@ function FlowWidget() {
           <p className="text-xs text-fog">别人家的宽带 · IP：45.78.×.×</p>
         </div>
         <div className="flex-none text-center text-lg text-fog">⟶</div>
-        <div className="flex-1 rounded-xl bg-zinc-50 p-3 text-center">
+        <div className="flex-1 rounded-xl bg-white/10 p-3 text-center">
           <div className="text-2xl">🌐</div>
           <p className="mt-1 text-sm font-bold">目标网站</p>
           <p className="text-xs text-fog">
             看到的 IP：
-            <b className={viaProxy ? "text-sky-700" : "text-zinc-900"}>
+            <b className={viaProxy ? "text-sky-300" : "text-white"}>
               {viaProxy ? "45.78.×.×（代理的）" : "183.192.×.×（你的）"}
             </b>
           </p>
@@ -137,21 +137,21 @@ function RouteWidget() {
         ))}
       </div>
       <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
-        <div className="flex-1 rounded-xl bg-zinc-50 p-3 text-center text-sm font-bold">📱 你的设备</div>
+        <div className="flex-1 rounded-xl bg-white/10 p-3 text-center text-sm font-bold">📱 你的设备</div>
         <div className="flex-none text-center text-lg text-fog">⟶</div>
         <div
           className={cn(
             "flex-1 rounded-xl p-3 text-center text-sm font-bold",
-            cur.path === "proxy" ? "bg-sky-50 ring-2 ring-sky-500" : "bg-zinc-50 opacity-40"
+            cur.path === "proxy" ? "bg-sky-500/25 ring-2 ring-sky-500" : "bg-white/5 opacity-60"
           )}
         >
           🏡 代理出口
         </div>
         <div className="flex-none text-center text-lg text-fog">⟶</div>
-        <div className="flex-1 rounded-xl bg-zinc-50 p-3 text-center text-sm font-bold">🌐 {cur.site}</div>
+        <div className="flex-1 rounded-xl bg-white/10 p-3 text-center text-sm font-bold">🌐 {cur.site}</div>
       </div>
       <p className="mt-4 text-sm leading-6 text-fog">
-        <b className="text-zinc-900">{cur.site}：{cur.path === "proxy" ? "走代理" : "直连"}</b>。{cur.why}
+        <b className="text-white">{cur.site}：{cur.path === "proxy" ? "走代理" : "直连"}</b>。{cur.why}
         Clash 这类工具就是“交通指挥”：按你定的规则，决定每个请求走直连还是走代理，不用每次手动开关。
       </p>
     </Card>
@@ -166,7 +166,7 @@ const IP_CASES = [
     asn: "某云服务商 · 机房",
     type: "Hosting（托管）",
     verdict: "机房 IP",
-    color: "text-red-600",
+    color: "text-red-400",
     desc: "IP 属于数据中心，网站一眼就知道这是服务器，不是真人家里。很多网站对机房 IP 卡得更严。",
   },
   {
@@ -174,7 +174,7 @@ const IP_CASES = [
     asn: "某宽带运营商 · 机房托管",
     type: "ISP（运营商）",
     verdict: "ISP 代理，不是真住宅",
-    color: "text-amber-600",
+    color: "text-amber-300",
     desc: "IP 名义上属于运营商，但实际放在机房服务器上跑。看着像宽带，骨子里还是机房，介于两者之间。",
   },
   {
@@ -182,7 +182,7 @@ const IP_CASES = [
     asn: "某地家庭宽带",
     type: "Residential（住宅）",
     verdict: "真住宅 IP",
-    color: "text-emerald-600",
+    color: "text-emerald-300",
     desc: "IP 来自真实家庭宽带，网站看到的就是普通家庭用户。这就是“家宽”两个字的含义。",
   },
 ];
@@ -203,7 +203,7 @@ function CheckWidget() {
           </button>
         ))}
       </div>
-      <div className="rounded-xl bg-zinc-50 p-4 text-sm leading-7">
+      <div className="rounded-xl bg-white/10 p-4 text-sm leading-7">
         <p>
           ASN 归属：<b>{cur.asn}</b>
         </p>
@@ -320,7 +320,7 @@ function QuizWidget() {
               "w-full rounded-xl border px-4 py-3 text-left text-sm transition-all active:scale-[0.98]",
               picked === k
                 ? "border-sky-500 bg-sky-50 font-bold text-sky-700"
-                : "border-line bg-white hover:border-sky-300/50"
+                : "border-line bg-transparent hover:border-sky-300/50"
             )}
           >
             {o}
@@ -331,7 +331,7 @@ function QuizWidget() {
         <p
           className={cn(
             "mt-3 text-sm leading-6",
-            picked === cur.answer ? "text-emerald-700" : "text-red-600"
+            picked === cur.answer ? "text-emerald-300" : "text-red-400"
           )}
         >
           {picked === cur.answer ? "✓ 答对了。" : "✗ 答错了。"}
@@ -383,7 +383,7 @@ function FaqWidget() {
   return (
     <div className="space-y-2">
       {FAQS.map((f, i) => (
-        <div key={f.q} className="overflow-hidden rounded-2xl border border-line bg-white">
+        <div key={f.q} className="overflow-hidden rounded-2xl border border-line bg-transparent">
           <button
             onClick={() => setOpen(open === i ? null : i)}
             className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left text-[15px] font-bold"
@@ -392,7 +392,7 @@ function FaqWidget() {
             <span className="flex-none text-fog">{open === i ? "−" : "+"}</span>
           </button>
           {open === i && (
-            <p className="border-t border-line px-5 py-4 text-sm leading-7 text-zinc-700">{f.a}</p>
+            <p className="border-t border-line px-5 py-4 text-sm leading-7 text-white/85">{f.a}</p>
           )}
         </div>
       ))}
@@ -405,7 +405,7 @@ export default function ProxyLearnPage() {
     <SiteShell>
       {/* 头部 */}
       <section className="mx-auto max-w-2xl pb-10 pt-6 text-center sm:pt-10">
-        <h1 className="text-3xl font-extrabold leading-tight text-zinc-900 sm:text-4xl">
+        <h1 className="text-3xl font-extrabold leading-tight text-white sm:text-4xl">
           家宽学堂
         </h1>
         <p className="mt-4 text-[15px] leading-7 text-fog">
@@ -413,17 +413,17 @@ export default function ProxyLearnPage() {
           这一页用大白话讲清楚，点一点、测一测就能懂。
         </p>
         <div className="mt-6 grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-2xl border border-line bg-white p-3">
+          <div className="rounded-2xl border border-line bg-transparent p-3">
             <div className="text-xl">🏠</div>
             <p className="mt-1 text-sm font-bold">住宅 IP</p>
             <p className="text-xs leading-5 text-fog">来自真实家庭宽带</p>
           </div>
-          <div className="rounded-2xl border border-line bg-white p-3">
+          <div className="rounded-2xl border border-line bg-transparent p-3">
             <div className="text-xl">🏢</div>
             <p className="mt-1 text-sm font-bold">机房 IP</p>
             <p className="text-xs leading-5 text-fog">来自数据中心服务器</p>
           </div>
-          <div className="rounded-2xl border border-line bg-white p-3">
+          <div className="rounded-2xl border border-line bg-transparent p-3">
             <div className="text-xl">🪪</div>
             <p className="mt-1 text-sm font-bold">ISP 代理</p>
             <p className="text-xs leading-5 text-fog">运营商名义，机房实质</p>
