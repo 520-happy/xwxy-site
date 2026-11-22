@@ -58,12 +58,12 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       "flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13.5px] transition-colors duration-200",
       active
         ? "bg-accent-soft font-semibold text-accent-deep"
-        : "text-fog hover:bg-slate-900/[0.05] hover:text-ink"
+        : "text-fog hover:bg-white/10 hover:text-ink"
     );
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-[100] border-b border-white/60 bg-[linear-gradient(180deg,rgb(0_0_0/0.3),rgb(0_0_0/0.1)_70%,transparent)]">
+      <header className="sticky top-0 z-[100] border-b border-white/10 bg-[#0a0f1e]/75 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-[1180px] items-center gap-3 px-4 sm:px-6">
           <Link href="/" className="flex flex-none items-center gap-2.5" aria-label="XWXY 首页">
             <span
@@ -104,7 +104,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           {/* 移动端汉堡按钮 */}
           <button
             type="button"
-            className="ml-auto flex h-10 w-10 items-center justify-center rounded-xl text-fog transition-colors hover:bg-slate-900/[0.05] hover:text-ink md:hidden"
+            className="ml-auto flex h-10 w-10 items-center justify-center rounded-xl text-fog transition-colors hover:bg-white/10 hover:text-ink md:hidden"
             aria-expanded={open}
             aria-label={open ? "关闭导航菜单" : "打开导航菜单"}
             onClick={() => setOpen((v) => !v)}
@@ -115,7 +115,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
         {/* 移动端下拉菜单 */}
         {open && (
-          <nav aria-label="主导航" className="border-t border-white/60 bg-[linear-gradient(180deg,rgb(0_0_0/0.3),rgb(0_0_0/0.1)_70%,transparent)] px-4 py-3 md:hidden">
+          <nav aria-label="主导航" className="border-t border-white/10 bg-[#0a0f1e]/85 backdrop-blur-md px-4 py-3 md:hidden">
             <ul className="flex flex-col gap-1">
               {NAV.map((it) => {
                 const active = isActive(pathname, it);
